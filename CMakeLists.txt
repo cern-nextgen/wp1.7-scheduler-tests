@@ -2,9 +2,9 @@
 cmake_minimum_required(VERSION 3.24)
 
 project(
-  CoScheduler
-  VERSION 0.0.1
-  LANGUAGES CXX)
+   CoScheduler
+   VERSION 0.0.1
+   LANGUAGES CXX)
 
 # Require a C++20 compiler for C++.
 set(CMAKE_CXX_STANDARD
@@ -36,15 +36,22 @@ find_package(CUDAToolkit REQUIRED)
 find_package(traccc REQUIRED)
 
 file(
-  GLOB
-  all_files
-  CONFIGURE_DEPENDS
-  "src/*.h"
-  "src/*.cpp"
-  "src/*.cuh"
-  "src/*.cu")
+   GLOB
+   all_files
+   CONFIGURE_DEPENDS
+   "src/*.h"
+   "src/*.cpp"
+   "src/*.cuh"
+   "src/*.cu")
 
-add_executable(CoScheduler ${all_files})
-set(CMAKE_CXX_FLAGS_DEBUG "-Wall -Wextra -g -O0 -fno-omit-frame-pointer -fsanitize=address")
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+   set(TargetName "CoScheduler_debug")
+else()
+   set(TargetName "CoScheduler")
+endif()
+
+add_executable(${TargetName} ${all_files})
+set(CMAKE_CXX_FLAGS_DEBUG
+    "-Wall -Wextra -g -O0 -fno-omit-frame-pointer -fsanitize=address")
 set(CMAKE_CUDA_FLAGS_DEBUG "-Wall -Wextra -g -O0 -fno-omit-frame-pointer")
-target_link_libraries(CoScheduler PRIVATE TBB::tbb CUDA::cudart traccc::core)
+target_link_libraries(${TargetName} PRIVATE TBB::tbb CUDA::cudart traccc::core traccc::io)
