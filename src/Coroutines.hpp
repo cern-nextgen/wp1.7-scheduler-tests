@@ -91,7 +91,7 @@ public:
    // Deal with exceptions not handled locally inside coroutine.
    [[noreturn]] void unhandled_exception() {
       std::terminate();
-   };
+   }
 };
 
 

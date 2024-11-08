@@ -5,6 +5,7 @@
 #include "Scheduler.hpp"
 #include "SecondAlgorithm.hpp"
 #include "StatusCode.hpp"
+#include "TracccAlgorithm.hpp"
 #include "ThirdAlgorithm.hpp"
 
 
@@ -16,11 +17,12 @@ int main() {
    FirstAlgorithm firstAlgorithm;
    SecondAlgorithm secondAlgorithm;
    ThirdAlgorithm thirdAlgorithm;
+   TracccAlgorithm tracccAlgorithm;
 
    // Add the algorithms to the scheduler.
-   scheduler.addAlgorithm(firstAlgorithm);
-   scheduler.addAlgorithm(secondAlgorithm);
-   scheduler.addAlgorithm(thirdAlgorithm);
+//   scheduler.addAlgorithm(firstAlgorithm);
+//   scheduler.addAlgorithm(secondAlgorithm);
+   scheduler.addAlgorithm(tracccAlgorithm);
 
    // Run the scheduler.
    std::cout << (scheduler.run().what()) << std::endl;
