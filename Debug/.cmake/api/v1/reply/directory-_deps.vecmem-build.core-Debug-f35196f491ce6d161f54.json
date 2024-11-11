@@ -1,0 +1,135 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"install",
+			"vecmem_add_library"
+		],
+		"files" : 
+		[
+			"Debug/_deps/vecmem-src/cmake/vecmem-functions.cmake",
+			"Debug/_deps/vecmem-src/core/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 1
+			},
+			{
+				"command" : 1,
+				"file" : 1,
+				"line" : 12,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 40,
+				"parent" : 1
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 63,
+				"parent" : 1
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 68,
+				"parent" : 1
+			},
+			{
+				"command" : 0,
+				"file" : 1,
+				"line" : 186,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 1,
+				"line" : 207,
+				"parent" : 0
+			}
+		]
+	},
+	"installers" : 
+	[
+		{
+			"backtrace" : 2,
+			"component" : "Unspecified",
+			"destination" : "include/vecmem",
+			"paths" : 
+			[
+				"Debug/_deps/vecmem-build/core/CMakeFiles/vecmem/vecmem_core_export.hpp"
+			],
+			"type" : "file"
+		},
+		{
+			"backtrace" : 3,
+			"component" : "Unspecified",
+			"destination" : "lib",
+			"paths" : 
+			[
+				"lib/libvecmem_core.so.1.10.0",
+				"lib/libvecmem_core.so.1"
+			],
+			"targetId" : "vecmem_core::@762b489df77c3f16314e",
+			"targetIndex" : 59,
+			"targetInstallNamelink" : "skip",
+			"type" : "target"
+		},
+		{
+			"backtrace" : 3,
+			"component" : "Unspecified",
+			"destination" : "lib",
+			"paths" : 
+			[
+				"lib/libvecmem_core.so"
+			],
+			"targetId" : "vecmem_core::@762b489df77c3f16314e",
+			"targetIndex" : 59,
+			"targetInstallNamelink" : "only",
+			"type" : "target"
+		},
+		{
+			"backtrace" : 4,
+			"component" : "Unspecified",
+			"destination" : "include",
+			"paths" : 
+			[
+				{
+					"from" : "Debug/_deps/vecmem-src/core/include",
+					"to" : "."
+				}
+			],
+			"type" : "directory"
+		},
+		{
+			"backtrace" : 5,
+			"component" : "Unspecified",
+			"destination" : "include/vecmem",
+			"paths" : 
+			[
+				"Debug/_deps/vecmem-build/core/CMakeFiles/vecmem/version.hpp"
+			],
+			"type" : "file"
+		},
+		{
+			"backtrace" : 6,
+			"component" : "Unspecified",
+			"destination" : "lib/cmake/vecmem-1.10.0",
+			"paths" : 
+			[
+				"Debug/_deps/vecmem-src/core/cmake/vecmem-setup-core.cmake"
+			],
+			"type" : "file"
+		}
+	],
+	"paths" : 
+	{
+		"build" : "_deps/vecmem-build/core",
+		"source" : "Debug/_deps/vecmem-src/core"
+	}
+}

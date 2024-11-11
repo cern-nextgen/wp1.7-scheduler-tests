@@ -1,0 +1,152 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"install",
+			"include"
+		],
+		"files" : 
+		[
+			"Debug/_deps/algebraplugins-src/cmake/algebra-plugins-packaging.cmake",
+			"Debug/_deps/algebraplugins-src/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 1
+			},
+			{
+				"command" : 1,
+				"file" : 1,
+				"line" : 184,
+				"parent" : 0
+			},
+			{
+				"file" : 0,
+				"parent" : 1
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 14,
+				"parent" : 2
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 28,
+				"parent" : 2
+			}
+		]
+	},
+	"installers" : 
+	[
+		{
+			"backtrace" : 3,
+			"component" : "Unspecified",
+			"destination" : "lib/cmake/algebra-plugins-0.23",
+			"exportName" : "algebra-plugins-exports",
+			"exportTargets" : 
+			[
+				{
+					"id" : "algebra_common::@355fab06c890533191fa",
+					"index" : 0
+				},
+				{
+					"id" : "algebra_array_storage::@070ac7c7dc80d1413aa4",
+					"index" : 0
+				},
+				{
+					"id" : "algebra_common_storage::@43e7a97d08016905c23c",
+					"index" : 0
+				},
+				{
+					"id" : "algebra_eigen_storage::@6a4610def561cce24a68",
+					"index" : 0
+				},
+				{
+					"id" : "algebra_vc_storage::@9006ea6e0b67e64c4ca8",
+					"index" : 0
+				},
+				{
+					"id" : "algebra_vc_soa_storage::@6c57eb849c8477abba68",
+					"index" : 0
+				},
+				{
+					"id" : "algebra_vecmem_storage::@3b195cd132d17daac1c6",
+					"index" : 0
+				},
+				{
+					"id" : "algebra_common_math::@2b889efdb4745d76a1f7",
+					"index" : 0
+				},
+				{
+					"id" : "algebra_cmath_math::@258139a58c043ff071d9",
+					"index" : 0
+				},
+				{
+					"id" : "algebra_eigen_math::@367d0bbca148cac14776",
+					"index" : 0
+				},
+				{
+					"id" : "algebra_vc_math::@8d486508cad1b84c9193",
+					"index" : 0
+				},
+				{
+					"id" : "algebra_vc_soa_math::@949bd219fe2839e1fb19",
+					"index" : 0
+				},
+				{
+					"id" : "algebra_array_cmath::@58fc78d4fe66d27f0917",
+					"index" : 0
+				},
+				{
+					"id" : "algebra_eigen_cmath::@d879e0b62220af2c23e6",
+					"index" : 0
+				},
+				{
+					"id" : "algebra_eigen_eigen::@ef9ea403b0b5841a84ca",
+					"index" : 0
+				},
+				{
+					"id" : "algebra_vc_cmath::@42a7d8be5cb62986548b",
+					"index" : 0
+				},
+				{
+					"id" : "algebra_vc_vc::@2e8e0095610b67fce29e",
+					"index" : 0
+				},
+				{
+					"id" : "algebra_vc_soa::@ae2a9d4783bc5ba17d88",
+					"index" : 0
+				},
+				{
+					"id" : "algebra_vecmem_cmath::@e489d32994d611a9e6a5",
+					"index" : 0
+				}
+			],
+			"paths" : 
+			[
+				"_deps/algebraplugins-build/CMakeFiles/Export/b6bf96cbc0aca3aec069f59a8c72d06a/algebra-plugins-config-targets.cmake"
+			],
+			"type" : "export"
+		},
+		{
+			"backtrace" : 4,
+			"component" : "Unspecified",
+			"destination" : "lib/cmake/algebra-plugins-0.23",
+			"paths" : 
+			[
+				"Debug/_deps/algebraplugins-build/CMakeFiles/algebra-plugins-config.cmake",
+				"Debug/_deps/algebraplugins-build/CMakeFiles/algebra-plugins-config-version.cmake"
+			],
+			"type" : "file"
+		}
+	],
+	"paths" : 
+	{
+		"build" : "_deps/algebraplugins-build",
+		"source" : "Debug/_deps/algebraplugins-src"
+	}
+}

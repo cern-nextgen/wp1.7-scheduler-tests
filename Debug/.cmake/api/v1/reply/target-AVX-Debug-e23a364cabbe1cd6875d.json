@@ -1,0 +1,35 @@
+{
+	"backtrace" : 1,
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"add_custom_target"
+		],
+		"files" : 
+		[
+			"Debug/_deps/vc-src/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 107,
+				"parent" : 0
+			}
+		]
+	},
+	"id" : "AVX::@f263a124008f1c8f8693",
+	"name" : "AVX",
+	"paths" : 
+	{
+		"build" : "_deps/vc-build",
+		"source" : "Debug/_deps/vc-src"
+	},
+	"sources" : [],
+	"type" : "UTILITY"
+}

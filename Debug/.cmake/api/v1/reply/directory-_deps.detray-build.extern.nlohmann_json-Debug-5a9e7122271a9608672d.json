@@ -1,0 +1,14 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : [],
+		"nodes" : []
+	},
+	"installers" : [],
+	"paths" : 
+	{
+		"build" : "_deps/detray-build/extern/nlohmann_json",
+		"source" : "Debug/_deps/detray-src/extern/nlohmann_json"
+	}
+}

@@ -1,0 +1,35 @@
+{
+	"backtrace" : 1,
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"add_custom_target"
+		],
+		"files" : 
+		[
+			"Debug/_deps/vc-src/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 105,
+				"parent" : 0
+			}
+		]
+	},
+	"id" : "Scalar::@f263a124008f1c8f8693",
+	"name" : "Scalar",
+	"paths" : 
+	{
+		"build" : "_deps/vc-build",
+		"source" : "Debug/_deps/vc-src"
+	},
+	"sources" : [],
+	"type" : "UTILITY"
+}

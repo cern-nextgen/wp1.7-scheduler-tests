@@ -1,0 +1,14 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : [],
+		"nodes" : []
+	},
+	"installers" : [],
+	"paths" : 
+	{
+		"build" : "_deps/acts-build/Core/src/Material",
+		"source" : "Debug/_deps/acts-src/Core/src/Material"
+	}
+}

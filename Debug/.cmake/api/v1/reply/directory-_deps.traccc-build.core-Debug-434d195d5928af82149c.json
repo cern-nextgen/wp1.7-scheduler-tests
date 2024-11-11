@@ -1,0 +1,87 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"install",
+			"traccc_add_library"
+		],
+		"files" : 
+		[
+			"Debug/_deps/traccc-src/cmake/traccc-functions.cmake",
+			"Debug/_deps/traccc-src/core/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 1
+			},
+			{
+				"command" : 1,
+				"file" : 1,
+				"line" : 11,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 62,
+				"parent" : 1
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 68,
+				"parent" : 1
+			}
+		]
+	},
+	"installers" : 
+	[
+		{
+			"backtrace" : 2,
+			"component" : "Unspecified",
+			"destination" : "lib",
+			"paths" : 
+			[
+				"lib/libtraccc_core.so.0.17.0",
+				"lib/libtraccc_core.so.0"
+			],
+			"targetId" : "traccc_core::@0e4076633eea43be2953",
+			"targetIndex" : 53,
+			"targetInstallNamelink" : "skip",
+			"type" : "target"
+		},
+		{
+			"backtrace" : 2,
+			"component" : "Unspecified",
+			"destination" : "lib",
+			"paths" : 
+			[
+				"lib/libtraccc_core.so"
+			],
+			"targetId" : "traccc_core::@0e4076633eea43be2953",
+			"targetIndex" : 53,
+			"targetInstallNamelink" : "only",
+			"type" : "target"
+		},
+		{
+			"backtrace" : 3,
+			"component" : "Unspecified",
+			"destination" : "include",
+			"paths" : 
+			[
+				{
+					"from" : "Debug/_deps/traccc-src/core/include",
+					"to" : "."
+				}
+			],
+			"type" : "directory"
+		}
+	],
+	"paths" : 
+	{
+		"build" : "_deps/traccc-build/core",
+		"source" : "Debug/_deps/traccc-src/core"
+	}
+}

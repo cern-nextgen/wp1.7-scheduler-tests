@@ -1,0 +1,14 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : [],
+		"nodes" : []
+	},
+	"installers" : [],
+	"paths" : 
+	{
+		"build" : "_deps/eigen3-build/bench/spbench",
+		"source" : "Debug/_deps/eigen3-src/bench/spbench"
+	}
+}

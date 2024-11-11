@@ -1,0 +1,14 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : [],
+		"nodes" : []
+	},
+	"installers" : [],
+	"paths" : 
+	{
+		"build" : "_deps/eigen3-build/unsupported",
+		"source" : "Debug/_deps/eigen3-src/unsupported"
+	}
+}
