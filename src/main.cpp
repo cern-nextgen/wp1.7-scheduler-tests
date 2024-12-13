@@ -13,7 +13,7 @@
 
 int main() {
    // Create the scheduler.
-   Scheduler scheduler(1, 1, 1);
+   Scheduler scheduler(10, 4, 10);
 
    // Create the algorithms.
    FirstAlgorithm firstAlgorithm;
