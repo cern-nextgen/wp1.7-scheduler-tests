@@ -51,7 +51,34 @@ else()
 endif()
 
 add_executable(${TargetName} ${all_files})
-set(CMAKE_CXX_FLAGS_DEBUG
-    "-Wall -Wextra -g -O0 -fno-omit-frame-pointer -fsanitize=address")
+set(CMAKE_CXX_FLAGS_DEBUG "-Wall -Wextra -g -O0 -fno-omit-frame-pointer")
 set(CMAKE_CUDA_FLAGS_DEBUG "-Wall -Wextra -g -O0 -fno-omit-frame-pointer")
-target_link_libraries(${TargetName} PRIVATE TBB::tbb CUDA::cudart traccc::core traccc::io)
+
+find_library(
+   PTRACK_LIB_BACKTRACE
+   NAMES "backtrace"
+   PATH_SUFFIXES "pixeltrack-standalone/external/libbacktrace/lib")
+
+find_library(
+   PTRACK_LIB_CUDACORE
+   NAMES "CUDACore"
+   PATH_SUFFIXES "pixeltrack-standalone/lib/cuda")
+
+find_path(
+   PTRACK_INCLUDE_CUDACORE
+   NAMES "CUDACore"
+   PATH_SUFFIXES "pixeltrack-standalone/src/cuda")
+
+target_include_directories(${TargetName} PUBLIC ${PTRACK_INCLUDE_CUDACORE})
+
+target_link_libraries(
+   ${TargetName}
+   PUBLIC TBB::tbb
+          CUDA::cudart
+          traccc::core
+          traccc::io
+          traccc::cuda
+          traccc::device_common
+          vecmem::cuda
+          ${PTRACK_LIB_CUDACORE}
+          ${PTRACK_LIB_BACKTRACE})

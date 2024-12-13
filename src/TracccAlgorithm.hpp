@@ -1,4 +1,3 @@
-
 #pragma once
 
 // Local include(s).
@@ -7,12 +6,11 @@
 
 // traccc include(s).
 #include <traccc/clusterization/clusterization_algorithm.hpp>
+#include <traccc/geometry/detector.hpp>
 #include <vecmem/memory/host_memory_resource.hpp>
 
 /// Algorithm making use of traccc
-class TracccAlgorithm : public AlgorithmBase
-{
-
+class TracccAlgorithm : public AlgorithmBase {
 public:
    /// @name Function(s) inherited from @c AlgorithmBase
    /// @{
@@ -36,5 +34,6 @@ private:
    mutable vecmem::host_memory_resource m_mr;
    /// The traccc clusterization algorithm
    traccc::host::clusterization_algorithm m_clusterization{m_mr};
-
-}; // class TracccAlgorithm
+   traccc::silicon_detector_description::host m_det_descr{m_mr};
+   traccc::default_detector::host m_detector{m_mr};
+};  // class TracccAlgorithm
