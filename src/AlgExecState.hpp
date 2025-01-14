@@ -63,4 +63,3 @@ public:
 private:
    State m_state{UNSCHEDULED};
 };
-

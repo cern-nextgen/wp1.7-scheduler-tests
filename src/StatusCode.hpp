@@ -20,7 +20,7 @@ public:
 
    StatusCode(ErrorCode code, std::string msg)
        : m_code{code},
-         m_msg{"***** " + std::move(msg) + " *****"} {
+         m_msg{"<<<<< " + std::move(msg) + " >>>>>"} {
    }
 
    StatusCode(ErrorCode code) : m_code{code}, m_msg{""} {
@@ -46,15 +46,15 @@ public:
       return !(status1 == status2);
    }
 
-   auto& appendMsg(std::string s) {
+   const std::string& appendMsg(const std::string& s) {
       return m_msg += std::string{"\n"} += "***** " + s + " *****";
    }
 
    std::string what() const {
       if(m_code == SUCCESS && m_msg.empty()) {
-         return "**** SUCCESS ****";
+         return "<<<<< SUCCESS >>>>>";
       } else if(m_code == FAILURE && m_msg.empty()) {
-         return "**** FAILURE ****";
+         return "<<<<< FAILURE >>>>>";
       }
       return m_msg;
    }

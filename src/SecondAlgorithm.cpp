@@ -4,25 +4,24 @@
 
 #include "CudaKernels.cuh"
 #include "EventContext.hpp"
+#include "MemberFunctionName.hpp"
 #include "Scheduler.hpp"
 
 
 StatusCode SecondAlgorithm::initialize() {
-   std::cout << "SecondAlgorithm::initialize" << std::endl;
+   std::cout << MEMBER_FUNCTION_NAME(SecondAlgorithm) << std::endl;
    return StatusCode::SUCCESS;
 }
 
 
 AlgorithmBase::AlgCoInterface SecondAlgorithm::execute(EventContext ctx) const {
-   std::cout << "SecondAlgorithm::execute part1, ctx.eventNumber = " << ctx.eventNumber
-             << ", ctx.slotNumber = " << ctx.slotNumber << std::endl;
+   std::cout << MEMBER_FUNCTION_NAME(SecondAlgorithm) + " part1, " << ctx.info() << std::endl;
    ctx.scheduler->setCudaSlotState(ctx.slotNumber, ctx.algNumber, false);
    launchTestKernel3(ctx.stream);
    cudaLaunchHostFunc(ctx.stream, notifyScheduler, new EventContext{ctx});
    co_yield StatusCode::SUCCESS;
 
-   std::cout << "SecondAlgorithm::execute part2, ctx.eventNumber = " << ctx.eventNumber
-             << ", ctx.slotNumber = " << ctx.slotNumber << std::endl;
+   std::cout << MEMBER_FUNCTION_NAME(SecondAlgorithm) + " part2, " << ctx.info() << std::endl;
    ctx.scheduler->setCudaSlotState(ctx.slotNumber, ctx.algNumber, false);
    launchTestKernel4(ctx.stream);
    cudaLaunchHostFunc(ctx.stream, notifyScheduler, new EventContext{ctx});
@@ -32,7 +31,7 @@ AlgorithmBase::AlgCoInterface SecondAlgorithm::execute(EventContext ctx) const {
 
 
 StatusCode SecondAlgorithm::finalize() {
-   std::cout << "SecondAlgorithm::finalize" << std::endl;
+   std::cout << MEMBER_FUNCTION_NAME(SecondAlgorithm) << std::endl;
    return StatusCode::SUCCESS;
 }
 

@@ -14,7 +14,6 @@
 #include <traccc/seeding/spacepoint_formation_algorithm.hpp>
 #include <traccc/seeding/track_params_estimation.hpp>
 
-#include "Assert.hpp"
 #include "traccc/clusterization/clustering_config.hpp"
 #include "traccc/cuda/clusterization/measurement_sorting_algorithm.hpp"
 #include "traccc/cuda/finding/finding_algorithm.hpp"

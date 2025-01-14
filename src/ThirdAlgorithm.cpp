@@ -4,18 +4,18 @@
 
 #include "CudaKernels.cuh"
 #include "EventContext.hpp"
+#include "MemberFunctionName.hpp"
 #include "Scheduler.hpp"
 
 
 StatusCode ThirdAlgorithm::initialize() {
-   std::cout << "ThirdAlgorithm::initialize" << std::endl;
+   std::cout << MEMBER_FUNCTION_NAME(ThirdAlgorithm) << std::endl;
    return StatusCode::SUCCESS;
 }
 
 
 AlgorithmBase::AlgCoInterface ThirdAlgorithm::execute(EventContext ctx) const {
-   std::cout << "ThirdAlgorithm::execute part1, ctx.eventNumber = " << ctx.eventNumber
-             << ", ctx.slotNumber = " << ctx.slotNumber << std::endl;
+   std::cout << MEMBER_FUNCTION_NAME(ThirdAlgorithm) + " part1, " << ctx.info() << std::endl;
    ctx.scheduler->setCudaSlotState(ctx.slotNumber, ctx.algNumber, false);
    launchTestKernel5(ctx.stream);
    cudaLaunchHostFunc(ctx.stream, notifyScheduler, new EventContext{ctx});
@@ -25,7 +25,7 @@ AlgorithmBase::AlgCoInterface ThirdAlgorithm::execute(EventContext ctx) const {
 
 
 StatusCode ThirdAlgorithm::finalize() {
-   std::cout << "ThirdAlgorithm::finalize" << std::endl;
+   std::cout << MEMBER_FUNCTION_NAME(ThirdAlgorithm) << std::endl;
    return StatusCode::SUCCESS;
 }
 

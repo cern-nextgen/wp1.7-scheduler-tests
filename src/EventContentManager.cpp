@@ -6,7 +6,6 @@
 #include <set>
 
 #include "AlgorithmBase.hpp"
-#include "Assert.hpp"
 #include "StatusCode.hpp"
 
 

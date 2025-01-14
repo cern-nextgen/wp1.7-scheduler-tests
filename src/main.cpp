@@ -22,9 +22,9 @@ int main() {
    TracccCudaAlgorithm tracccAlgorithm;
 
    // Add the algorithms to the scheduler.
-//   scheduler.addAlgorithm(firstAlgorithm);
-//   scheduler.addAlgorithm(secondAlgorithm);
-   scheduler.addAlgorithm(tracccAlgorithm);
+   scheduler.addAlgorithm(firstAlgorithm);
+   scheduler.addAlgorithm(secondAlgorithm);
+   scheduler.addAlgorithm(thirdAlgorithm);
 
    // Run the scheduler.
    std::cout << (scheduler.run().what()) << std::endl;
