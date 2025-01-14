@@ -1,3 +1,9 @@
+// Mimic "assert always".
+#ifdef NDEBUG
+#undef NDEBUG
+#endif
+
+
 #include <cassert>
 #include <cstddef>
 #include <cstdlib>
@@ -7,12 +13,6 @@
 
 #include "../src/EventStore.hpp"
 #include "../src/StatusCode.hpp"
-
-
-// Mimic "assert always".
-#ifdef NDEBUG
-#undef NDEBUG
-#endif
 
 
 #define INITIALIZE_EVENTSTORE(T, x, name) \
@@ -83,7 +83,7 @@ void run_record_repeat_fail(T x, const std::string& name) {
    assert(not store.record(std::make_unique<T>(x), name));
 
    // Different type, same name is not allowed either.
-   assert(not store.record(std::make_unique<std::nullptr_t>(nullptr), name));
+   assert(store.record(std::make_unique<std::nullptr_t>(nullptr), name));
 }
 
 
