@@ -24,7 +24,7 @@ struct ObjectHolderBase {
 template <typename T>
 class ObjectHolder : public ObjectHolderBase {
 public:
-   ObjectHolder(std::unique_ptr<T> ptr) : m_ptr{std::move(ptr)} {
+   ObjectHolder(std::unique_ptr<T>&& ptr) : m_ptr{std::move(ptr)} {
       assert(m_ptr);
    }
 
@@ -63,14 +63,13 @@ public:
 
 
    template <typename T>
-   StatusCode record(std::unique_ptr<T> obj, const std::string& name) {
+   StatusCode record(std::unique_ptr<T>&& obj, const std::string& name) {
       // Cannot record multiple objects with the same name.
       if(this->contains<T>(name)) {
          return StatusCode::FAILURE;
       }
 
-      m_dataStore[name] = std::make_unique<ObjectHolder<T>>(ObjectHolder(std::move(obj)));
-      obj.release();
+      m_dataStore[name] = std::make_unique<ObjectHolder<T>>(std::move(obj));
       return StatusCode::SUCCESS;
    }
 

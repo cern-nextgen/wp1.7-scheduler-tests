@@ -3,11 +3,11 @@
 #include <tbb/global_control.h>
 
 #include <algorithm>
+#include <cassert>
 #include <iostream>
 
-#include "Assert.hpp"
 #include "Coroutines.hpp"
-#include "CudaAssert.cuh"
+#include "AssertCuda.cuh"
 #include "EventContext.hpp"
 
 
@@ -55,7 +55,7 @@ StatusCode Scheduler::run() {
 
    // Make sure all tasks finish.
    tbb::task_group_status taskStatus = m_group.wait();
-   ASSERT(taskStatus != tbb::task_group_status::canceled);
+   assert(taskStatus != tbb::task_group_status::canceled);
 
    // Finalize all the algorithms.
    if(StatusCode status = AlgorithmBase::for_all(m_algorithms, &AlgorithmBase::finalize);
@@ -111,7 +111,7 @@ StatusCode Scheduler::executeAction(action_type& f) {
    if(StatusCode status = f(); !status) {
       // Make sure all tasks finish.
       tbb::task_group_status taskStatus = m_group.wait();
-      ASSERT(taskStatus != tbb::task_group_status::canceled);
+      assert(taskStatus != tbb::task_group_status::canceled);
       this->printStatuses();
       return status;
    }
@@ -171,7 +171,8 @@ void Scheduler::pushAction(int slot, std::size_t ialg, SlotState& slotState) {
 
    // Add the action that would schedule the execution of the
    // algorithm.
-   this->m_arena.execute([this, ialg, slot, &slotState, &alg = m_algorithms[ialg].get()]() { this->m_group.run([this, ialg, slot, &slotState, &alg]() {
+   this->m_arena.execute([this, ialg, slot, &slotState, &alg = m_algorithms[ialg].get()]() {
+      this->m_group.run([this, ialg, slot, &slotState, &alg]() {
          if(slotState.coroutines[ialg].empty()) {
             // Do not resume the first time coroutine is launched because
             // initial_suspend never suspends.

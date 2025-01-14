@@ -1,6 +1,7 @@
 #include "EventContentManager.hpp"
 
 #include <algorithm>
+#include <cassert>
 #include <iterator>
 #include <set>
 
@@ -13,11 +14,11 @@ namespace {
 void setBits(const std::vector<std::string>& allObjectsVec,
              const std::vector<std::string>& objects, boost::dynamic_bitset<>& objBitset) {
    objBitset.reset();
-   ASSERT(objBitset.size() == allObjectsVec.size());
+   assert(objBitset.size() == allObjectsVec.size());
    for(const auto& obj : objects) {
       auto it = std::ranges::find(allObjectsVec, obj);
       std::size_t index = it - allObjectsVec.begin();
-      ASSERT(index < allObjectsVec.size());
+      assert(index < allObjectsVec.size());
       objBitset.set(index);
    }
 }
@@ -77,7 +78,7 @@ EventContentManager& EventContentManager::operator=(const EventContentManager& E
 
 
 StatusCode EventContentManager::setAlgExecuted(std::size_t alg) {
-   ASSERT(alg < m_algDependencies.size());
+   assert(alg < m_algDependencies.size());
    std::lock_guard<std::mutex> guard(m_storeContentMutex);
    m_algContent |= m_algProducts[alg];
    return StatusCode::SUCCESS;
@@ -85,7 +86,7 @@ StatusCode EventContentManager::setAlgExecuted(std::size_t alg) {
 
 
 bool EventContentManager::isAlgExecutable(std::size_t alg) const {
-   ASSERT(alg < m_algDependencies.size());
+   assert(alg < m_algDependencies.size());
    std::lock_guard<std::mutex> guard(m_storeContentMutex);
    return m_algDependencies[alg].is_subset_of(m_algContent);
 }
