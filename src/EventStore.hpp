@@ -12,6 +12,7 @@
 
 
 struct ObjectHolderBase {
+   ObjectHolderBase() = default;
    ObjectHolderBase(const ObjectHolderBase&) = delete;
    ObjectHolderBase& operator=(const ObjectHolderBase&) = delete;
    virtual ~ObjectHolderBase() = default;
@@ -49,7 +50,6 @@ public:
       return (it != m_dataStore.end()) && (typeid(T) == it->second->get_type());
    }
 
-
    template <typename T>
    StatusCode retrieve(const T*& obj, const std::string& name) {
       assert(this->contains<T>(name));
@@ -61,7 +61,6 @@ public:
       return StatusCode::SUCCESS;
    }
 
-
    template <typename T>
    StatusCode record(std::unique_ptr<T>&& obj, const std::string& name) {
       // Cannot record multiple objects with the same name.
@@ -72,7 +71,6 @@ public:
       m_dataStore[name] = std::make_unique<ObjectHolder<T>>(std::move(obj));
       return StatusCode::SUCCESS;
    }
-
 
 private:
    std::map<std::string, std::unique_ptr<ObjectHolderBase>> m_dataStore;
