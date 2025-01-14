@@ -1,0 +1,5 @@
+Create new executable TestEventStore. Add source file and create subdirectory Test. Test record and retrieve, test error handling.
+Figure out how to put EventStore in EventSlot. Traccc should read cell collection from EventStore, not CSV file.
+
+Retrieve and record in execute
+Algorithm 1 record object1, Algoritm 2 and 3 retrieve object1, then record object2 and object3, next algorithms will retrieve object2 and object3.

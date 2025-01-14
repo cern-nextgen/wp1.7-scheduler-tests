@@ -50,6 +50,8 @@ else()
    set(TargetName "CoScheduler")
 endif()
 
+add_executable(TestEventStore test/TestEventStore.cpp)
+
 add_executable(${TargetName} ${all_files})
 set(CMAKE_CXX_FLAGS_DEBUG "-Wall -Wextra -g -O0 -fno-omit-frame-pointer")
 set(CMAKE_CUDA_FLAGS_DEBUG "-Wall -Wextra -g -O0 -fno-omit-frame-pointer")

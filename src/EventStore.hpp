@@ -13,8 +13,6 @@
 
 struct ObjectHolderBase {
    ObjectHolderBase() = default;
-   ObjectHolderBase(const ObjectHolderBase&) = delete;
-   ObjectHolderBase& operator=(const ObjectHolderBase&) = delete;
    virtual ~ObjectHolderBase() = default;
 
    virtual void* get_pointer() const = 0;
@@ -52,7 +50,6 @@ public:
 
    template <typename T>
    StatusCode retrieve(const T*& obj, const std::string& name) {
-      assert(this->contains<T>(name));
       if(!this->contains<T>(name)) {
          return StatusCode::FAILURE;
       }
@@ -64,7 +61,7 @@ public:
    template <typename T>
    StatusCode record(std::unique_ptr<T>&& obj, const std::string& name) {
       // Cannot record multiple objects with the same name.
-      if(this->contains<T>(name)) {
+      if(m_dataStore.find(name) != m_dataStore.end()) {
          return StatusCode::FAILURE;
       }
 
