@@ -4,6 +4,9 @@
 #endif
 
 
+#define assert_not(expr) assert(not expr)
+
+
 #include <cassert>
 #include <cstddef>
 #include <cstdlib>
@@ -33,12 +36,12 @@ void run_contains_fail(T x, const std::string& name) {
    INITIALIZE_EVENTSTORE(T, x, name);
 
    // Correct name, wrong type.
-   assert(not store.contains<T*>(name));
-   assert(not store.contains<T[]>(name));
+   assert_not(store.contains<T*>(name));
+   assert_not(store.contains<T[]>(name));
 
    // Correct type, wrong name.
-   assert(not store.contains<T>(name + " "));
-   assert(not store.contains<T>(name + " "));
+   assert_not(store.contains<T>(name + " "));
+   assert_not(store.contains<T>(name + " "));
 }
 
 
@@ -58,11 +61,11 @@ void run_retrieve_fail(T x, const std::string& name) {
 
    // Correct name, wrong type.
    const std::nullptr_t* null_val = nullptr;
-   assert(not store.retrieve(null_val, name));
+   assert_not(store.retrieve(null_val, name));
 
    // Correct type, wrong name.
    const T* yptr = nullptr;
-   assert(not store.retrieve(yptr, name + " "));
+   assert_not(store.retrieve(yptr, name + " "));
 }
 
 
@@ -80,10 +83,10 @@ void run_record_repeat_fail(T x, const std::string& name) {
    INITIALIZE_EVENTSTORE(T, x, name);
 
    // Same type, same name is not allowed.
-   assert(not store.record(std::make_unique<T>(x), name));
+   assert_not(store.record(std::make_unique<T>(x), name));
 
    // Different type, same name is not allowed either.
-   assert(store.record(std::make_unique<std::nullptr_t>(nullptr), name));
+   assert_not(store.record(std::make_unique<std::nullptr_t>(nullptr), name));
 }
 
 
