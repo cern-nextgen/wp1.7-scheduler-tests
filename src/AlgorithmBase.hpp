@@ -3,6 +3,7 @@
 
 #include <functional>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -28,8 +29,13 @@ public:
 
    virtual StatusCode finalize() = 0;
 
-   virtual const std::vector<std::string>& dependencies() const = 0;
-   virtual const std::vector<std::string>& products() const = 0;
+   const std::vector<std::string>& dependencies() const {
+      return m_dependencies;
+   }
+
+   const std::vector<std::string>& products() const {
+      return m_products;
+   }
 
    static StatusCode for_all(const std::vector<std::reference_wrapper<AlgorithmBase>>& algs,
                              auto F, auto&&... args) {
@@ -41,5 +47,20 @@ public:
       }
       return StatusCode::SUCCESS;
    }
-};
 
+protected:
+   template <typename T>
+   StatusCode addDependency(std::string_view name) {
+      m_dependencies.push_back(std::string{name} + " " + typeid(T).name());
+      return StatusCode::SUCCESS;
+   }
+
+   template <typename T>
+   StatusCode addProduct(std::string_view name) {
+      m_products.push_back(std::string{name} + " " + typeid(T).name());
+      return StatusCode::SUCCESS;
+   }
+
+private:
+   std::vector<std::string> m_dependencies, m_products;
+};

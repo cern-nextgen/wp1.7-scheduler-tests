@@ -1,8 +1,29 @@
 #pragma once
 
 
+#include <iostream>
 #include <string>
 #include <utility>
+
+
+#define SC_CHECK(EXP)                                             \
+   do {                                                           \
+      const auto sc = EXP;                                        \
+      if(!sc.isSuccess()) {                                       \
+         std::cout << "Failed to execute: " << #EXP << std::endl; \
+         return StatusCode::FAILURE;                              \
+      }                                                           \
+   } while(false)
+
+
+#define SC_CHECK_YIELD(EXP)                                       \
+   do {                                                           \
+      const auto sc = EXP;                                        \
+      if(!sc.isSuccess()) {                                       \
+         std::cout << "Failed to execute: " << #EXP << std::endl; \
+         co_yield StatusCode::FAILURE;                            \
+      }                                                           \
+   } while(false)
 
 
 class [[nodiscard]] StatusCode {

@@ -4,9 +4,11 @@
 
 
 void notifyScheduler(void* args) {
-   EventContext* ctx = static_cast<EventContext*>(args);
-   ctx->scheduler->setCudaSlotState(ctx->slotNumber, ctx->algNumber, true);
-   ctx->scheduler->actionUpdate();
-   delete ctx;
-}
+   Notification* notify = static_cast<Notification*>(args);
+   EventContext& ctx = notify->ctx;
 
+   ctx.scheduler->setCudaSlotState(ctx.slotNumber, notify->algNumber, true);
+   ctx.scheduler->actionUpdate();
+
+   delete notify;
+}

@@ -6,9 +6,10 @@
 #include <cassert>
 #include <iostream>
 
-#include "Coroutines.hpp"
 #include "AssertCuda.cuh"
+#include "Coroutines.hpp"
 #include "EventContext.hpp"
+#include "EventStore.hpp"
 
 
 Scheduler::Scheduler(int events, int threads, int slots)
@@ -21,6 +22,7 @@ Scheduler::Scheduler(int events, int threads, int slots)
    // Set up a global limit on the number of threads.
    tbb::global_control global_thread_limit(tbb::global_control::max_allowed_parallelism,
                                            m_threads + 1);
+   EventStoreRegistry::instance().data().resize(slots);
 }
 
 
@@ -126,6 +128,8 @@ StatusCode Scheduler::update() {
 
       if(std::ranges::all_of(slotState.algStates,
                              [](AlgExecState x) { return x == AlgExecState::FINISHED; })) {
+         EventContext ctx{slotState.eventNumber, slot, this, m_streams[slot]};
+         eventStoreOf(ctx).clear();
          slotState.eventNumber = m_nextEvent++;
          // vector<bool> not compatible with std::ranges.
          std::fill(slotState.cudaFinished.begin(), slotState.cudaFinished.end(), true);
@@ -176,7 +180,7 @@ void Scheduler::pushAction(int slot, std::size_t ialg, SlotState& slotState) {
          if(slotState.coroutines[ialg].empty()) {
             // Do not resume the first time coroutine is launched because
             // initial_suspend never suspends.
-            EventContext ctx{slotState.eventNumber, slot, ialg, this, m_streams[slot]};
+            EventContext ctx{slotState.eventNumber, slot, this, m_streams[slot]};
             slotState.coroutines[ialg] = alg.execute(ctx);
          } else {
             slotState.coroutines[ialg].resume();

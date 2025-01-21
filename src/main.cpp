@@ -1,19 +1,18 @@
 #include <cstdlib>
 #include <iostream>
 
+#include "CUDACore/ProductBase.h"
 #include "FirstAlgorithm.hpp"
 #include "Scheduler.hpp"
 #include "SecondAlgorithm.hpp"
 #include "StatusCode.hpp"
+#include "ThirdAlgorithm.hpp"
 #include "TracccAlgorithm.hpp"
 #include "TracccCudaAlgorithm.hpp"
-#include "ThirdAlgorithm.hpp"
-
-#include "CUDACore/ProductBase.h"
 
 int main() {
    // Create the scheduler.
-   Scheduler scheduler(10, 4, 10);
+   Scheduler scheduler(10, 2, 2);
 
    // Create the algorithms.
    FirstAlgorithm firstAlgorithm;
@@ -22,9 +21,10 @@ int main() {
    TracccCudaAlgorithm tracccAlgorithm;
 
    // Add the algorithms to the scheduler.
-//   scheduler.addAlgorithm(firstAlgorithm);
-//   scheduler.addAlgorithm(secondAlgorithm);
-   scheduler.addAlgorithm(tracccAlgorithm);
+   scheduler.addAlgorithm(firstAlgorithm);
+   scheduler.addAlgorithm(secondAlgorithm);
+   scheduler.addAlgorithm(thirdAlgorithm);
+   //   scheduler.addAlgorithm(tracccAlgorithm);
 
    // Run the scheduler.
    std::cout << (scheduler.run().what()) << std::endl;

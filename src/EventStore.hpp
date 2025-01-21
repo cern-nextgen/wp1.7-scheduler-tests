@@ -7,7 +7,9 @@
 #include <string>
 #include <typeinfo>
 #include <utility>
+#include <vector>
 
+#include "EventContext.hpp"
 #include "StatusCode.hpp"
 
 
@@ -69,7 +71,40 @@ public:
       return StatusCode::SUCCESS;
    }
 
+   void clear() {
+      m_dataStore.clear();
+   }
+
 private:
    std::map<std::string, std::unique_ptr<ObjectHolderBase>> m_dataStore;
 };
 
+
+class EventStoreRegistry {
+public:
+   EventStoreRegistry(const EventStoreRegistry&) = delete;
+   EventStoreRegistry& operator=(const EventStoreRegistry&) = delete;
+
+   static EventStoreRegistry& instance() {
+      static EventStoreRegistry r;
+      return r;
+   }
+
+   auto& data() {
+      return eventStores;
+   }
+
+   const auto& data() const {
+      return eventStores;
+   }
+
+private:
+   EventStoreRegistry() = default;
+
+   std::vector<EventStore> eventStores;
+};
+
+
+inline EventStore& eventStoreOf(const EventContext& ctx) {
+   return EventStoreRegistry::instance().data().at(ctx.slotNumber);
+}

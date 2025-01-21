@@ -1,4 +1,3 @@
-// Local include(s).
 #include "TracccAlgorithm.hpp"
 
 #include <detray/detectors/bfield.hpp>
@@ -14,11 +13,12 @@
 #include <traccc/seeding/spacepoint_formation_algorithm.hpp>
 #include <traccc/seeding/track_params_estimation.hpp>
 
+
 StatusCode TracccAlgorithm::initialize() {
    traccc::io::read_detector_description(m_det_descr,
                                          "geometries/odd/odd-detray_geometry_detray.json",
                                          "geometries/odd/odd-digi-geometric-config.json");
-   // detector file, material file, grid file
+   // Detector file, material file, grid file.
    traccc::io::read_detector(m_detector,
                              m_mr,
                              "geometries/odd/odd-detray_geometry_detray.json",
@@ -29,8 +29,8 @@ StatusCode TracccAlgorithm::initialize() {
    return StatusCode::SUCCESS;
 }
 
+
 AlgorithmBase::AlgCoInterface TracccAlgorithm::execute(EventContext ctx) const {
-   //  seeding algorithm
    traccc::edm::silicon_cell_collection::host cells{m_mr};
 
    traccc::io::read_cells(cells, ctx.eventNumber, "odd/geant4_10muon_10GeV/", &m_det_descr);
@@ -86,16 +86,7 @@ AlgorithmBase::AlgCoInterface TracccAlgorithm::execute(EventContext ctx) const {
    co_return StatusCode::SUCCESS;
 }
 
+
 StatusCode TracccAlgorithm::finalize() {
    return StatusCode::SUCCESS;
-}
-
-const std::vector<std::string> &TracccAlgorithm::dependencies() const {
-   static std::vector<std::string> deps = {};
-   return deps;
-}
-
-const std::vector<std::string> &TracccAlgorithm::products() const {
-   static std::vector<std::string> prods = {};
-   return prods;
 }

@@ -14,7 +14,6 @@ class Scheduler;
 struct EventContext {
    int eventNumber = 0;
    int slotNumber = 0;
-   std::size_t algNumber = 0;
    Scheduler* scheduler = nullptr;
    cudaStream_t stream;
 
@@ -25,6 +24,12 @@ struct EventContext {
 };
 
 
+struct Notification {
+   EventContext& ctx;
+   std::size_t algNumber;
+};
+
+
 // Function to be passed to CUDA callback.
-// args points to EventContext.
+// args points to Notification.
 void notifyScheduler(void* args);

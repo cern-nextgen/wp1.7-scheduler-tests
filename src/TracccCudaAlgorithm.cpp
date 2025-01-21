@@ -1,4 +1,3 @@
-// Local include(s).
 #include "TracccCudaAlgorithm.hpp"
 
 #include <detray/detectors/bfield.hpp>
@@ -22,6 +21,7 @@
 #include "traccc/cuda/seeding/spacepoint_formation_algorithm.hpp"
 #include "traccc/cuda/seeding/track_params_estimation.hpp"
 
+
 TracccCudaAlgorithm::TracccCudaAlgorithm()
     : m_host_mr{},
       m_cuda_host_mr{},
@@ -36,11 +36,12 @@ TracccCudaAlgorithm::TracccCudaAlgorithm()
       m_ca_cuda{m_mr, m_copy, m_stream, traccc::clustering_config{256, 16, 8, 256}} {
 }
 
+
 StatusCode TracccCudaAlgorithm::initialize() {
    traccc::io::read_detector_description(m_host_det_descr,
                                          "geometries/odd/odd-detray_geometry_detray.json",
                                          "geometries/odd/odd-digi-geometric-config.json");
-   // detector file, material file, grid file
+   // Detector file, material file, grid file.
    traccc::io::read_detector(m_host_detector,
                              m_host_mr,
                              "geometries/odd/odd-detray_geometry_detray.json",
@@ -62,6 +63,7 @@ StatusCode TracccCudaAlgorithm::initialize() {
 
    return StatusCode::SUCCESS;
 }
+
 
 AlgorithmBase::AlgCoInterface TracccCudaAlgorithm::execute(EventContext ctx) const {
    traccc::edm::silicon_cell_collection::host cells{m_host_mr};
@@ -108,7 +110,7 @@ AlgorithmBase::AlgCoInterface TracccCudaAlgorithm::execute(EventContext ctx) con
    device_fitting_algorithm fitting_alg_cuda{
        device_fitting_algorithm::config_type{}, m_mr, m_copy, m_stream};
 
-   // Constant B field for the track finding and fitting
+   // Constant B field for the track finding and fitting.
    const traccc::vector3 field_vec = {0.f, 0.f, traccc::seedfinder_config{}.bFieldInZ};
    const detray::bfield::const_field_t field = detray::bfield::create_const_field(field_vec);
    traccc::bound_track_parameters_collection_types::buffer params_cuda_buffer{0, *m_mr.host};
@@ -137,17 +139,7 @@ AlgorithmBase::AlgCoInterface TracccCudaAlgorithm::execute(EventContext ctx) con
    co_return StatusCode::SUCCESS;
 }
 
+
 StatusCode TracccCudaAlgorithm::finalize() {
    return StatusCode::SUCCESS;
 }
-
-const std::vector<std::string> &TracccCudaAlgorithm::dependencies() const {
-   static std::vector<std::string> deps = {};
-   return deps;
-}
-
-const std::vector<std::string> &TracccCudaAlgorithm::products() const {
-   static std::vector<std::string> prods = {};
-   return prods;
-}
-

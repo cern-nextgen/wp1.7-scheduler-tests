@@ -39,4 +39,3 @@ private:
    DataObjColl_t m_algContent;
    mutable std::mutex m_storeContentMutex;
 };
-

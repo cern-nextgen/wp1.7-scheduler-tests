@@ -4,9 +4,6 @@
 #endif
 
 
-#define assert_not(expr) assert(not expr)
-
-
 #include <cassert>
 #include <cstddef>
 #include <cstdlib>
@@ -16,6 +13,9 @@
 
 #include "../src/EventStore.hpp"
 #include "../src/StatusCode.hpp"
+
+
+#define assert_not(expr) assert(not(expr))
 
 
 #define INITIALIZE_EVENTSTORE(T, x, name) \
