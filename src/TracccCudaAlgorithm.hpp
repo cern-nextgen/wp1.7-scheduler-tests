@@ -15,7 +15,7 @@
 
 class TracccCudaAlgorithm : public AlgorithmBase {
 public:
-   TracccCudaAlgorithm();
+   TracccCudaAlgorithm(int numEvents);
 
    StatusCode initialize() override;
    AlgCoInterface execute(EventContext ctx) const override;
@@ -36,5 +36,8 @@ private:
    mutable vecmem::cuda::async_copy m_copy;
 
    traccc::cuda::clusterization_algorithm m_ca_cuda;
+
+   std::vector<traccc::edm::silicon_cell_collection::host> m_cells;
+   int m_numEvents;
 };
 

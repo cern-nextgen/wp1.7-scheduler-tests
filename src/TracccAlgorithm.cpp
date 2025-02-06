@@ -14,6 +14,10 @@
 #include <traccc/seeding/track_params_estimation.hpp>
 
 
+TracccAlgorithm::TracccAlgorithm(int numEvents) : m_numEvents{numEvents} {
+}
+
+
 StatusCode TracccAlgorithm::initialize() {
    traccc::io::read_detector_description(m_det_descr,
                                          "geometries/odd/odd-detray_geometry_detray.json",
@@ -25,15 +29,17 @@ StatusCode TracccAlgorithm::initialize() {
                              "geometries/odd/odd-detray_material_detray.json",
                              "geometries/odd/odd-detray_surface_grids_detray.json");
 
+   m_cells.assign(m_numEvents, traccc::edm::silicon_cell_collection::host{m_mr});
+   for(std::size_t i{}; auto& cells : m_cells) {
+      traccc::io::read_cells(cells, i++, "odd/geant4_10muon_10GeV/", &m_det_descr);
+   }
 
    return StatusCode::SUCCESS;
 }
 
 
 AlgorithmBase::AlgCoInterface TracccAlgorithm::execute(EventContext ctx) const {
-   traccc::edm::silicon_cell_collection::host cells{m_mr};
-
-   traccc::io::read_cells(cells, ctx.eventNumber, "odd/geant4_10muon_10GeV/", &m_det_descr);
+   const auto& cells = m_cells[ctx.eventNumber];
    std::cout << "Event number: " << ctx.eventNumber << std::endl;
    std::cout << "Size of cells: " << cells.size() << std::endl;
 

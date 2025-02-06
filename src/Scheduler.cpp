@@ -163,6 +163,11 @@ StatusCode Scheduler::update() {
             continue;
          }
 
+         // This assertion might help keeping track of new additions to AlgExecState.
+         assert((slotState.algStates[alg] == AlgExecState::UNSCHEDULED)
+                || (slotState.algStates[alg] == AlgExecState::SUSPENDED
+                    && slotState.cudaFinished[alg]));
+
          this->pushAction(slot, alg, slotState);
       }
    }
@@ -173,13 +178,12 @@ StatusCode Scheduler::update() {
 void Scheduler::pushAction(int slot, std::size_t ialg, SlotState& slotState) {
    slotState.algStates[ialg] = AlgExecState::SCHEDULED;
 
-   // Add the action that would schedule the execution of the
-   // algorithm.
+   // Add the action that would schedule the execution of the algorithm.
    this->m_arena.execute([this, ialg, slot, &slotState, &alg = m_algorithms[ialg].get()]() {
       this->m_group.run([this, ialg, slot, &slotState, &alg]() {
          if(slotState.coroutines[ialg].empty()) {
-            // Do not resume the first time coroutine is launched because
-            // initial_suspend never suspends.
+            // Do not resume the first time coroutine is launched because initial_suspend never
+            // suspends.
             EventContext ctx{slotState.eventNumber, slot, this, m_streams[slot]};
             slotState.coroutines[ialg] = alg.execute(ctx);
          } else {

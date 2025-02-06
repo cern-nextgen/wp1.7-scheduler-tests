@@ -11,6 +11,7 @@
 
 class TracccAlgorithm : public AlgorithmBase {
 public:
+   TracccAlgorithm(int numEvents);
    StatusCode initialize() override;
    AlgCoInterface execute(EventContext ctx) const override;
    StatusCode finalize() override;
@@ -20,4 +21,6 @@ private:
    traccc::host::clusterization_algorithm m_clusterization{m_mr};
    traccc::silicon_detector_description::host m_det_descr{m_mr};
    traccc::default_detector::host m_detector{m_mr};
+   std::vector<traccc::edm::silicon_cell_collection::host> m_cells;
+   int m_numEvents;
 };

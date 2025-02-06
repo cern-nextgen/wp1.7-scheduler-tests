@@ -12,13 +12,13 @@
 
 int main() {
    // Create the scheduler.
-   Scheduler scheduler(10, 2, 2);
+   Scheduler scheduler(10, 4, 4);
 
    // Create the algorithms.
    FirstAlgorithm firstAlgorithm;
    SecondAlgorithm secondAlgorithm;
    ThirdAlgorithm thirdAlgorithm;
-   TracccCudaAlgorithm tracccAlgorithm;
+//   TracccCudaAlgorithm tracccAlgorithm;
 
    // Add the algorithms to the scheduler.
    scheduler.addAlgorithm(firstAlgorithm);

@@ -22,7 +22,7 @@
 #include "traccc/cuda/seeding/track_params_estimation.hpp"
 
 
-TracccCudaAlgorithm::TracccCudaAlgorithm()
+TracccCudaAlgorithm::TracccCudaAlgorithm(int numEvents)
     : m_host_mr{},
       m_cuda_host_mr{},
       m_device_mr{},
@@ -33,7 +33,8 @@ TracccCudaAlgorithm::TracccCudaAlgorithm()
       m_device_detector{},
       m_stream{},
       m_copy{m_stream.cudaStream()},
-      m_ca_cuda{m_mr, m_copy, m_stream, traccc::clustering_config{256, 16, 8, 256}} {
+      m_ca_cuda{m_mr, m_copy, m_stream, traccc::clustering_config{256, 16, 8, 256}},
+      m_numEvents{numEvents} {
 }
 
 
@@ -59,17 +60,20 @@ StatusCode TracccCudaAlgorithm::initialize() {
    traccc::silicon_detector_description::data host_det_descr_data{
        vecmem::get_data(m_host_det_descr)};
    m_copy(host_det_descr_data, m_device_det_descr);
+   m_stream.synchronize();  // Synchronize needed here?
 
+   m_cells.assign(m_numEvents, traccc::edm::silicon_cell_collection::host{m_host_mr});
+   for(std::size_t i{}; auto& cells : m_cells) {
+      traccc::io::read_cells(cells, i++, "odd/geant4_10muon_10GeV/", &m_host_det_descr);
+   }
 
    return StatusCode::SUCCESS;
 }
 
 
 AlgorithmBase::AlgCoInterface TracccCudaAlgorithm::execute(EventContext ctx) const {
-   traccc::edm::silicon_cell_collection::host cells{m_host_mr};
+   const auto& cells = m_cells[ctx.eventNumber];
 
-   traccc::io::read_cells(
-       cells, ctx.eventNumber, "odd/geant4_10muon_10GeV/", &m_host_det_descr);
    traccc::edm::silicon_cell_collection::buffer cells_buffer{
        static_cast<unsigned int>(cells.size()), m_mr.main};
    m_copy(vecmem::get_data(cells), cells_buffer)->ignore();
