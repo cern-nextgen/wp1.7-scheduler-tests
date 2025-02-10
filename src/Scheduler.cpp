@@ -93,11 +93,9 @@ void Scheduler::initSchedulerState() {
    m_slotStates.clear();
    for(int i = 0; i < m_slots; ++i) {
       m_slotStates.push_back({m_nextEvent++});
-      m_slotStates.back().cudaFinished = std::vector<bool>(m_algorithms.size(), true);
-      m_slotStates.back().algStatuses
-          = std::vector<StatusCode>(m_algorithms.size(), StatusCode::SUCCESS);
-      m_slotStates.back().algStates
-          = std::vector<AlgExecState>(m_algorithms.size(), AlgExecState::UNSCHEDULED);
+      m_slotStates.back().cudaFinished.assign(m_algorithms.size(), true);
+      m_slotStates.back().algStatuses.assign(m_algorithms.size(), StatusCode::SUCCESS);
+      m_slotStates.back().algStates.assign(m_algorithms.size(), AlgExecState::UNSCHEDULED);
       m_slotStates.back().coroutines.resize(m_algorithms.size());
       m_slotStates.back().eventManager = std::make_unique<EventContentManager>(m_algorithms);
    }

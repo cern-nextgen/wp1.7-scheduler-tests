@@ -12,19 +12,19 @@
 
 int main() {
    // Create the scheduler.
-   Scheduler scheduler(10, 4, 4);
+   Scheduler scheduler(100, 4, 4);
 
    // Create the algorithms.
-   FirstAlgorithm firstAlgorithm;
-   SecondAlgorithm secondAlgorithm;
-   ThirdAlgorithm thirdAlgorithm;
-//   TracccCudaAlgorithm tracccAlgorithm;
+   //   FirstAlgorithm firstAlgorithm;
+   //   SecondAlgorithm secondAlgorithm;
+   //   ThirdAlgorithm thirdAlgorithm;
+   TracccCudaAlgorithm tracccAlgorithm(10);
 
    // Add the algorithms to the scheduler.
-   scheduler.addAlgorithm(firstAlgorithm);
-   scheduler.addAlgorithm(secondAlgorithm);
-   scheduler.addAlgorithm(thirdAlgorithm);
-   //   scheduler.addAlgorithm(tracccAlgorithm);
+//   scheduler.addAlgorithm(firstAlgorithm);
+//   scheduler.addAlgorithm(secondAlgorithm);
+//   scheduler.addAlgorithm(thirdAlgorithm);
+   scheduler.addAlgorithm(tracccAlgorithm);
 
    // Run the scheduler.
    std::cout << (scheduler.run().what()) << std::endl;
