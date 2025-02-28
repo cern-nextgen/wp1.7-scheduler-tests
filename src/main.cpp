@@ -31,6 +31,5 @@ int main() {
 
    // Run the scheduler.
    std::cout << (scheduler.run().what()) << std::endl;
-   cms::cuda::ProductBase p{};
    return EXIT_SUCCESS;
 }
