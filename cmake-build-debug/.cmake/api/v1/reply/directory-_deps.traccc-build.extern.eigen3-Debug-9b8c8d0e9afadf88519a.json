@@ -1,0 +1,14 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : [],
+		"nodes" : []
+	},
+	"installers" : [],
+	"paths" : 
+	{
+		"build" : "_deps/traccc-build/extern/eigen3",
+		"source" : "cmake-build-debug/_deps/traccc-src/extern/eigen3"
+	}
+}

@@ -1,0 +1,90 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"install",
+			"tbb_install_target"
+		],
+		"files" : 
+		[
+			"cmake-build-debug/_deps/tbb-src/cmake/utils.cmake",
+			"cmake-build-debug/_deps/tbb-src/src/tbb/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 1
+			},
+			{
+				"command" : 1,
+				"file" : 1,
+				"line" : 139,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 27,
+				"parent" : 1
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 45,
+				"parent" : 1
+			},
+			{
+				"command" : 0,
+				"file" : 1,
+				"line" : 189,
+				"parent" : 0
+			}
+		]
+	},
+	"installers" : 
+	[
+		{
+			"backtrace" : 2,
+			"component" : "runtime",
+			"destination" : "lib",
+			"paths" : 
+			[
+				"clang_20.0_cxx20_64_debug/libtbb_debug.so.12.13",
+				"clang_20.0_cxx20_64_debug/libtbb_debug.so.12"
+			],
+			"targetId" : "tbb::@5a320f633ce3adaa3ee6",
+			"targetIndex" : 50,
+			"targetInstallNamelink" : "skip",
+			"type" : "target"
+		},
+		{
+			"backtrace" : 3,
+			"component" : "devel",
+			"destination" : "lib",
+			"paths" : 
+			[
+				"clang_20.0_cxx20_64_debug/libtbb_debug.so"
+			],
+			"targetId" : "tbb::@5a320f633ce3adaa3ee6",
+			"targetIndex" : 50,
+			"targetInstallNamelink" : "only",
+			"type" : "target"
+		},
+		{
+			"backtrace" : 4,
+			"component" : "devel",
+			"destination" : "lib/pkgconfig",
+			"paths" : 
+			[
+				"cmake-build-debug/_deps/tbb-build/src/tbb/tbb.pc"
+			],
+			"type" : "file"
+		}
+	],
+	"paths" : 
+	{
+		"build" : "_deps/tbb-build/src/tbb",
+		"source" : "cmake-build-debug/_deps/tbb-src/src/tbb"
+	}
+}

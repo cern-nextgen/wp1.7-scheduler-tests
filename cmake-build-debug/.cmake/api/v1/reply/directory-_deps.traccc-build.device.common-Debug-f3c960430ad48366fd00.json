@@ -1,0 +1,87 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"install",
+			"traccc_add_library"
+		],
+		"files" : 
+		[
+			"cmake-build-debug/_deps/traccc-src/cmake/traccc-functions.cmake",
+			"cmake-build-debug/_deps/traccc-src/device/common/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 1
+			},
+			{
+				"command" : 1,
+				"file" : 1,
+				"line" : 11,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 62,
+				"parent" : 1
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 68,
+				"parent" : 1
+			}
+		]
+	},
+	"installers" : 
+	[
+		{
+			"backtrace" : 2,
+			"component" : "Unspecified",
+			"destination" : "lib",
+			"paths" : 
+			[
+				"lib/libtraccc_device_common.so.0.17.0",
+				"lib/libtraccc_device_common.so.0"
+			],
+			"targetId" : "traccc_device_common::@66955555f701b77e76e1",
+			"targetIndex" : 56,
+			"targetInstallNamelink" : "skip",
+			"type" : "target"
+		},
+		{
+			"backtrace" : 2,
+			"component" : "Unspecified",
+			"destination" : "lib",
+			"paths" : 
+			[
+				"lib/libtraccc_device_common.so"
+			],
+			"targetId" : "traccc_device_common::@66955555f701b77e76e1",
+			"targetIndex" : 56,
+			"targetInstallNamelink" : "only",
+			"type" : "target"
+		},
+		{
+			"backtrace" : 3,
+			"component" : "Unspecified",
+			"destination" : "include",
+			"paths" : 
+			[
+				{
+					"from" : "cmake-build-debug/_deps/traccc-src/device/common/include",
+					"to" : "."
+				}
+			],
+			"type" : "directory"
+		}
+	],
+	"paths" : 
+	{
+		"build" : "_deps/traccc-build/device/common",
+		"source" : "cmake-build-debug/_deps/traccc-src/device/common"
+	}
+}

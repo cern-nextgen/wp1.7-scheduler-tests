@@ -1,0 +1,14 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : [],
+		"nodes" : []
+	},
+	"installers" : [],
+	"paths" : 
+	{
+		"build" : "_deps/algebraplugins-build/frontend",
+		"source" : "cmake-build-debug/_deps/algebraplugins-src/frontend"
+	}
+}

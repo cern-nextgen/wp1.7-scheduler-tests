@@ -8,23 +8,26 @@
 #include "StatusCode.hpp"
 #include "ThirdAlgorithm.hpp"
 #include "TracccAlgorithm.hpp"
+#include "TracccAlgs.hpp"
 #include "TracccCudaAlgorithm.hpp"
 
 int main() {
    // Create the scheduler.
-   Scheduler scheduler(100, 4, 4);
+   Scheduler scheduler(1000, 4, 4);
 
    // Create the algorithms.
    //   FirstAlgorithm firstAlgorithm;
    //   SecondAlgorithm secondAlgorithm;
    //   ThirdAlgorithm thirdAlgorithm;
-   TracccCudaAlgorithm tracccAlgorithm(10);
+   TracccCellsAlgorithm cellsAlg(10);
+   TracccComputeAlgorithm computeAlg(10);
 
    // Add the algorithms to the scheduler.
-//   scheduler.addAlgorithm(firstAlgorithm);
-//   scheduler.addAlgorithm(secondAlgorithm);
-//   scheduler.addAlgorithm(thirdAlgorithm);
-   scheduler.addAlgorithm(tracccAlgorithm);
+   //   scheduler.addAlgorithm(firstAlgorithm);
+   //   scheduler.addAlgorithm(secondAlgorithm);
+   //   scheduler.addAlgorithm(thirdAlgorithm);
+   scheduler.addAlgorithm(cellsAlg);
+   scheduler.addAlgorithm(computeAlg);
 
    // Run the scheduler.
    std::cout << (scheduler.run().what()) << std::endl;

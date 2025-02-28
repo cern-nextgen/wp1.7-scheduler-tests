@@ -1,0 +1,14 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : [],
+		"nodes" : []
+	},
+	"installers" : [],
+	"paths" : 
+	{
+		"build" : "_deps/acts-build/thirdparty/nlohmann_json",
+		"source" : "cmake-build-debug/_deps/acts-src/thirdparty/nlohmann_json"
+	}
+}

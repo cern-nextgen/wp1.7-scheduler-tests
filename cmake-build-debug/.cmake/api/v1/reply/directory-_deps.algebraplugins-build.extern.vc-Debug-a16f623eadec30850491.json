@@ -1,0 +1,14 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : [],
+		"nodes" : []
+	},
+	"installers" : [],
+	"paths" : 
+	{
+		"build" : "_deps/algebraplugins-build/extern/vc",
+		"source" : "cmake-build-debug/_deps/algebraplugins-src/extern/vc"
+	}
+}

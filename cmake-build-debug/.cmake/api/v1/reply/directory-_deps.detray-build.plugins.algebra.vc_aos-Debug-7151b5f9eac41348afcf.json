@@ -1,0 +1,55 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"install",
+			"detray_add_library"
+		],
+		"files" : 
+		[
+			"cmake-build-debug/_deps/detray-src/cmake/detray-functions.cmake",
+			"cmake-build-debug/_deps/detray-src/plugins/algebra/vc_aos/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 1
+			},
+			{
+				"command" : 1,
+				"file" : 1,
+				"line" : 16,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 46,
+				"parent" : 1
+			}
+		]
+	},
+	"installers" : 
+	[
+		{
+			"backtrace" : 2,
+			"component" : "Unspecified",
+			"destination" : "include",
+			"isOptional" : true,
+			"paths" : 
+			[
+				{
+					"from" : "cmake-build-debug/_deps/detray-src/plugins/algebra/vc_aos/include",
+					"to" : "."
+				}
+			],
+			"type" : "directory"
+		}
+	],
+	"paths" : 
+	{
+		"build" : "_deps/detray-build/plugins/algebra/vc_aos",
+		"source" : "cmake-build-debug/_deps/detray-src/plugins/algebra/vc_aos"
+	}
+}

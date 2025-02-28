@@ -1,0 +1,14 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : [],
+		"nodes" : []
+	},
+	"installers" : [],
+	"paths" : 
+	{
+		"build" : "_deps/traccc-build/extern/vecmem",
+		"source" : "cmake-build-debug/_deps/traccc-src/extern/vecmem"
+	}
+}

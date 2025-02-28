@@ -1,0 +1,14 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : [],
+		"nodes" : []
+	},
+	"installers" : [],
+	"paths" : 
+	{
+		"build" : "_deps/covfie-build/lib",
+		"source" : "cmake-build-debug/_deps/covfie-src/lib"
+	}
+}
