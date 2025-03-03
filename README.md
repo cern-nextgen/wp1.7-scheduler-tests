@@ -1,5 +1,6 @@
 When configuring CMake, one should pass -DCMAKE_PREFIX_PATH=<path_to_patatrack>.
 Patatrack does not have CMake support and should be installed locally.
+Before running executable, make sure input files are available: export TRACCC_TEST_DATA_DIR=<path_to_traccc_data>.
 
 In the main.cpp file, I have commented out test algorithms FirstAlgorithm, SecondAlgorithm, and ThirdAlgorithm.
 They are used to verify that CUDA callbacks and algorithm dependencies are managed correctly.
