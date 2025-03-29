@@ -11,8 +11,8 @@
 #include <memory>
 #include <string>
 
-#include "../src/EventStore.hpp"
-#include "../src/StatusCode.hpp"
+#include "EventStore.hpp"
+#include "StatusCode.hpp"
 
 
 #define assert_not(expr) assert(not(expr))
