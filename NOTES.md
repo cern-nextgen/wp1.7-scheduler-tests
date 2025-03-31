@@ -12,3 +12,27 @@ copyable or they are expensive to copy. Therefore, another record function shoul
 In particular, it happens inside execute function in TracccAlgs.cpp.
 
 Algorithm dependencies are set up using protected member functions addDependency and addProduct of AlgorithmBase base class.
+
+## Building patatrack standalone
+
+Get [pixeltrack-standalone](https://github.com/cms-patatrack/pixeltrack-standalone) project:
+
+```sh
+git clone git@github.com:cms-patatrack/pixeltrack-standalone.git
+cd pixeltrack-standalone
+```
+
+Patatrack is using Makefile. Edit following lines to point to local packages:
+
+```makefile
+CUDA_BASE := /usr/local/cuda
+TBB_BASE      := $(ONEAPI_BASE)/tbb/latest
+TBB_LIBDIR    := $(TBB_BASE)/lib
+BOOST_BASE := /usr
+```
+
+Then, build:
+
+```sh
+make cuda
+```
