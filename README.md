@@ -1,21 +1,35 @@
-When configuring CMake, one should pass -DCMAKE_PREFIX_PATH=<path_to_patatrack>.
-Patatrack does not have CMake support and should be installed locally.
-Before running executable, make sure input files are available: export TRACCC_TEST_DATA_DIR=<path_to_traccc_data>.
+# WP 1.7 Scheduler tests
 
-In the main.cpp file, I have commented out test algorithms FirstAlgorithm, SecondAlgorithm, and ThirdAlgorithm.
-They are used to verify that CUDA callbacks and algorithm dependencies are managed correctly.
-Uncomment and run them to test the scheduler.
+Experiments with asynchronous scheduler for event-processing framework using oneTBB and C++20 coroutines.
 
-Sequential version of traccc algorithm is working properly but crashing with CUDA. It may or may not crash
-depending on whether it is run in debug or release mode.
+## Getting started
 
-The promise type of the coroutine is parameterized with respect to co_yield and co_return parameters. Promise<void, void>
-means there is no co_yield and empty co_return. We use Promise<StatusCode, StatusCode>.
+Requirements:
+- CMake 3.24 or higher
+- C++20 compatible compiler
+- CUDA 12.4 or higher
+- [Patatrack standalone version](https://github.com/cms-patatrack/pixeltrack-standalone)
 
-There is TracccAlgorithm and TracccAlgs files. TracccAlgs is supposed to be a replacement for TracccAlgorithm but
-using EventStore. At the moment, EventStore only records unique pointer objects. However, some types are not
-copyable or they are expensive to copy. Therefore, another record function should be added that stores raw pointer objects.
-In particular, it happens inside execute function in TracccAlgs.cpp.
+The project will automatically fetch and build other dependencies:
+- [traccc](https://github.com/acts-project/traccc)
+- oneTBB
 
-Algorithm dependencies are set up using protected member functions addDependency and addProduct of AlgorithmBase base class.
+To build the project, clone the repository and run the following commands:
+
+```sh
+PATATRACK_ROOT=<path_to_pixeltrack_standalone> cmake -S . -B build
+cmake --build build
+```
+
+Then run the executables:
+
+```sh
+bin/schedule_simple
+```
+
+or
+
+```sh
+TRACCC_TEST_DATA_DIR=<path_to_traccc_data> bin/schedule_traccc
+```
 
