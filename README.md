@@ -17,7 +17,7 @@ The project will automatically fetch and build other dependencies:
 To build the project, clone the repository and run the following commands:
 
 ```sh
-PATATRACK_ROOT=<path_to_pixeltrack_standalone> cmake -S . -B build
+Patatrack_ROOT=<path_to_pixeltrack_standalone> cmake -S . -B build
 cmake --build build
 ```
 
