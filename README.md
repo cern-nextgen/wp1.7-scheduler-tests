@@ -17,19 +17,19 @@ The project will automatically fetch and build other dependencies:
 To build the project, clone the repository and run the following commands:
 
 ```sh
-PATATRACK_ROOT=<path_to_pixeltrack_standalone> cmake -S . -B build
+Patatrack_ROOT=<path_to_pixeltrack_standalone> cmake -S . -B build
 cmake --build build
 ```
 
 Then run the executables:
 
 ```sh
-bin/schedule_simple
+build/bin/schedule_simple
 ```
 
 or
 
 ```sh
-TRACCC_TEST_DATA_DIR=<path_to_traccc_data> bin/schedule_traccc
+TRACCC_TEST_DATA_DIR=<path_to_traccc_data> build/bin/schedule_traccc
 ```
 

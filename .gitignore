@@ -16,3 +16,4 @@ CMakeUserPresets.json
 # Files created by VSCode builds.
 build/
 out/
+.cache/

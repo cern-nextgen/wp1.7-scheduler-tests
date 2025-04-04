@@ -1,8 +1,6 @@
 #include <cstdlib>
 #include <iostream>
 
-#include "CUDACore/ProductBase.h"
-
 #include "Scheduler.hpp"
 #include "StatusCode.hpp"
 #include "FirstAlgorithm.hpp"
