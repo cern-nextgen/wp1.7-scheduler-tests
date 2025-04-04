@@ -67,8 +67,8 @@ target_include_directories(
 target_link_libraries(CoScheduler PUBLIC TBB::tbb CUDA::cudart)
 
 if(BUILD_PATATRACK)
-  target_link_libraries(CoScheduler PUBLIC Patatrack::CUDACore
-                                           Patatrack::Backtrace)
+  # target_link_libraries(CoScheduler PUBLIC Patatrack::CUDACore
+  # Patatrack::Backtrace)
 endif()
 
 add_subdirectory(components)
