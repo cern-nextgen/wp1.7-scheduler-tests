@@ -24,12 +24,12 @@ cmake --build build
 Then run the executables:
 
 ```sh
-bin/schedule_simple
+build/bin/schedule_simple
 ```
 
 or
 
 ```sh
-TRACCC_TEST_DATA_DIR=<path_to_traccc_data> bin/schedule_traccc
+TRACCC_TEST_DATA_DIR=<path_to_traccc_data> build/bin/schedule_traccc
 ```
 
