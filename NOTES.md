@@ -36,3 +36,13 @@ Then, build:
 ```sh
 make cuda
 ```
+
+## Building on AlmaLinux8
+ AlmaLinux 8 has an old default compiler, so we want to use a newer one. GCC 14 is easily available in the package `gcc-toolset-14`. In turn, the host compiler should be indicated to `nvcc`.
+
+Also the default Boost version (1.68) is too old and wee need the newer boost1.78-devel package, which is not in the include path. (This is now reflected in the CMake file as well).
+
+ The CMake comfiguration hence becomes:
+ ```bash
+ Patatrack_ROOT=/home/cano/NGT/pixeltrack-standalone/ CXX=/opt/rh/gcc-toolset-14/root/usr/bin/g++ CUDACXX="/usr/local/cuda-12.9/bin/nvcc -ccbin ${CXX}" cmake -S wp1.7-scheduler-tests/ -B build/wp1.7-scheduler-test/ -DBoost_INCLUDE_DIR=/usr/include/boost1.78/
+ ```

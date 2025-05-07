@@ -38,6 +38,7 @@ add_subdirectory(externals)
 
 find_package(TBB REQUIRED)
 find_package(CUDAToolkit REQUIRED)
+find_package(Boost REQUIRED)
 if(BUILD_PATATRACK)
   find_package(Patatrack REQUIRED)
 endif()
@@ -61,7 +62,7 @@ file(
 
 add_library(CoScheduler SHARED ${all_files})
 target_include_directories(
-  CoScheduler PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+  CoScheduler PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src> ${Boost_INCLUDE_DIRS}
                      $<INSTALL_INTERFACE:include>)
 
 target_link_libraries(CoScheduler PUBLIC TBB::tbb CUDA::cudart)
