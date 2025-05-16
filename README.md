@@ -9,6 +9,7 @@ Requirements:
 - C++20 compatible compiler
 - CUDA 12.4 or higher
 - [Patatrack standalone version](https://github.com/cms-patatrack/pixeltrack-standalone)
+- Boost 1.78 or higher
 
 The project will automatically fetch and build other dependencies:
 - [traccc](https://github.com/acts-project/traccc)
