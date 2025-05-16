@@ -62,10 +62,10 @@ file(
 
 add_library(CoScheduler SHARED ${all_files})
 target_include_directories(
-  CoScheduler PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src> ${Boost_INCLUDE_DIRS}
+  CoScheduler PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
                      $<INSTALL_INTERFACE:include>)
 
-target_link_libraries(CoScheduler PUBLIC TBB::tbb CUDA::cudart)
+target_link_libraries(CoScheduler PUBLIC TBB::tbb CUDA::cudart Boost::headers)
 
 if(BUILD_PATATRACK)
   # target_link_libraries(CoScheduler PUBLIC Patatrack::CUDACore
