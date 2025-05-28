@@ -8,8 +8,8 @@
 
 #define SC_CHECK(EXP)                                             \
    do {                                                           \
-      const auto sc = EXP;                                        \
-      if(!sc.isSuccess()) {                                       \
+      const StatusCode sc = EXP;                                  \
+      if(!sc) {                                                   \
          std::cout << "Failed to execute: " << #EXP << std::endl; \
          return StatusCode::FAILURE;                              \
       }                                                           \
@@ -18,8 +18,8 @@
 
 #define SC_CHECK_YIELD(EXP)                                       \
    do {                                                           \
-      const auto sc = EXP;                                        \
-      if(!sc.isSuccess()) {                                       \
+      const StatusCode sc = EXP;                                  \
+      if(!sc) {                                                   \
          std::cout << "Failed to execute: " << #EXP << std::endl; \
          co_yield StatusCode::FAILURE;                            \
       }                                                           \
@@ -49,14 +49,6 @@ public:
 
    explicit operator bool() const {
       return m_code == SUCCESS;
-   }
-
-   bool isSuccess() const {
-      return m_code == SUCCESS;
-   }
-
-   bool isFailure() const {
-      return m_code == FAILURE;
    }
 
    friend bool operator==(const StatusCode& status1, const StatusCode& status2) {

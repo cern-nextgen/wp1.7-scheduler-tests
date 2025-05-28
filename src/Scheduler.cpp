@@ -20,6 +20,7 @@ Scheduler::Scheduler(int events, int threads, int slots)
       m_remainingEvents{},
       m_arena{threads, 0} {
    // Set up a global limit on the number of threads.
+   // TODO: explain why + 1
    tbb::global_control global_thread_limit(tbb::global_control::max_allowed_parallelism,
                                            m_threads + 1);
    EventStoreRegistry::instance().data().resize(slots);
@@ -205,7 +206,7 @@ void Scheduler::pushAction(int slot, std::size_t ialg, SlotState& slotState) {
          }
 
          slotState.algStatuses[ialg] = algStatus;
-         if(algStatus.isFailure()) {
+         if(!algStatus) {
             slotState.algStates[ialg] = AlgExecState::ERROR;
             this->m_actions.push([algStatus]() -> StatusCode { return algStatus; });
          } else {
