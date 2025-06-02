@@ -38,7 +38,7 @@ public:
    }
 
    void reset() {
-      *this = AlgExecState{};
+      new(this)AlgExecState;
    }
 
    friend bool operator==(const AlgExecState& state1, const AlgExecState& state2) {
