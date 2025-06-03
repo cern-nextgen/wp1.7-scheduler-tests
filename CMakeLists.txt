@@ -85,7 +85,7 @@ if(BUILD_TRACCC)
 endif()
 
 # Add the tests.
-
+enable_testing()
 if(BUILD_TESTS)
   add_subdirectory(tests)
 endif()
