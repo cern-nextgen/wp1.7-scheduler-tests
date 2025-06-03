@@ -145,34 +145,61 @@ private:
    StatusCode update();
 
    /**
-    * @brief Bottom half of `update()`. 
+    * @brief Bottom half of `update()`.  It will launch the asynchronous processing of a given algorithm. 
+    * The coroutine will be created or resumed, and the result will be used to update the algorithm state.
     * 
     * @param slot Slot for the currently processed event.
     * @param ialg Algorithm index in the algorithm list.
     * @param slotState Reference to the slot state that is being updated.
+    * @todo This function pushes the `update()` function in the action queue once per scheduled algorithm, which is 
+    * too much. It should be called only once per full event update loop.
+    * @todo This function's code claruty will benefit a lot from turning the collection of algo arrays into a strcuture.
     */
    void pushAction(int slot, std::size_t ialg, SlotState& slotState);
+
+   /**
+    * @brief Prints the current status of each algorithm in each slot.
+    */
    void printStatuses() const;
 
+   /// @brief Number of events to process.
    int m_events;
+
+   /// @brief Number of threads to use.
    int m_threads;
+
+   /// @brief Number of slots to use (i.e. concurrent events being processed).
    int m_slots;
+
+   /// @brief Id of the next event to process.
    int m_nextEvent = 0;
+
+   /// @brief Flag controling the switchover from configuring (registering algorithms) to running.
    bool m_runStarted = false;
+
+   /// @brief Number of events remaining to be processed.
    std::atomic_int m_remainingEvents;
 
+   /// @brief List of algorithms retistered in the scheduler.
    std::vector<std::reference_wrapper<AlgorithmBase>> m_algorithms;
 
+   /// @brief Vector tracking each slot's state
    std::vector<SlotState> m_slotStates;
-   /**
-    * @brief Contains CUDA streams for each slot, in a one-to-one relationship.
-    * @todo It should simply be a member of SlotState.
-    */
+
+   /// @brief CUDA streams for each slot, in a one-to-one relationship.
+   /// @todo It should simply be a member of SlotState.
    std::vector<cudaStream_t> m_streams;
 
+   /// @brief TBB task arena representing the thread pool we will run on.
    tbb::task_arena m_arena;
+
+   /// @brief TBB task group to control the tasks.
    tbb::task_group m_group;
+
+   /// @brief TBB concurrent bounded queue for keeping track of actions to be executed.
    tbb::concurrent_bounded_queue<action_type> m_actionQueue;
 public:
+
+   /// @brief Exception class for scheduler errors.
    DEFINE_EXCEPTION(RuntimeError);
 };

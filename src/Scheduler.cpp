@@ -189,7 +189,8 @@ void Scheduler::pushAction(int slot, std::size_t ialg, SlotState& slotState) {
    slotState.algExecStates[ialg] = AlgExecState::SCHEDULED;
 
    // Add the action that would schedule the execution of the algorithm.
-   // TODO: Why both Arena.execurte (which is semantically synchronous) and Group.run?
+   // m_arena.execute() is used to ensure that the action is executed (synchronously) in our task arena.
+   // next, m_group.run() launches the asynchronous task in the group to be able to `wait()`.
    m_arena.execute([this, ialg, slot, &slotState, &alg = m_algorithms[ialg].get()]() {
       m_group.run([this, ialg, slot, &slotState, &alg]() {
          if(slotState.coroutines[ialg].empty()) {
@@ -239,8 +240,8 @@ void Scheduler::printStatuses() const {
    std::cout << std::endl;
    std::cout << std::endl;
    std::cout << "Printing all statuses" << std::endl;
-   for(std::size_t i{}; const auto& slotState : m_slotStates) {
-      for(std::size_t j{}; const auto& algStatus : slotState.algStatuses) {
+   for(std::size_t i{0}; const auto& slotState : m_slotStates) {
+      for(std::size_t j{0}; const auto& algStatus : slotState.algStatuses) {
          std::cout << "slot: " << i << ", algorithm number: " << j++ << "\n"
                    << algStatus.what() << std::endl
                    << std::endl;
