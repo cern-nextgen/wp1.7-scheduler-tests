@@ -23,7 +23,7 @@ Scheduler::Scheduler(int events, int threads, int slots)
    // TODO: explain why + 1
    tbb::global_control global_thread_limit(tbb::global_control::max_allowed_parallelism,
                                            m_threads + 1);
-   EventStoreRegistry::instance().data().resize(slots);
+   EventStoreRegistry::initialize(slots);
 }
 
 
@@ -138,7 +138,7 @@ StatusCode Scheduler::update() {
       if(std::ranges::all_of(slotState.algExecStates,
                              [](AlgExecState x) { return x == AlgExecState::FINISHED; })) {
          EventContext ctx{slotState.eventNumber, slot, this, m_streams[slot]};
-         eventStoreOf(ctx).clear();
+         EventStoreRegistry::of(ctx).clear();
          slotState.eventNumber = m_nextEvent++;
          // vector<bool> not compatible with std::ranges.
          std::fill(slotState.cudaFinished.begin(), slotState.cudaFinished.end(), true);

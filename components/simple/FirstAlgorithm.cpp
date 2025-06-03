@@ -21,9 +21,9 @@ StatusCode FirstAlgorithm::initialize() {
 
 AlgorithmBase::AlgCoInterface FirstAlgorithm::execute(EventContext ctx) const {
    auto output1 = std::make_unique<int>(-1);
-   SC_CHECK_YIELD(eventStoreOf(ctx).record(std::move(output1), AlgorithmBase::products()[0]));
+   SC_CHECK_YIELD(EventStoreRegistry::of(ctx).record(std::move(output1), AlgorithmBase::products()[0]));
    auto output2 = std::make_unique<int>(-1);
-   SC_CHECK_YIELD(eventStoreOf(ctx).record(std::move(output2), AlgorithmBase::products()[1]));
+   SC_CHECK_YIELD(EventStoreRegistry::of(ctx).record(std::move(output2), AlgorithmBase::products()[1]));
 
    static std::atomic_int count = 0;
    std::cout << MEMBER_FUNCTION_NAME(FirstAlgorithm) + " part1, " << ctx.info() << std::endl;

@@ -19,9 +19,9 @@ StatusCode ThirdAlgorithm::initialize() {
 
 AlgorithmBase::AlgCoInterface ThirdAlgorithm::execute(EventContext ctx) const {
    const int* input = nullptr;
-   SC_CHECK_YIELD(eventStoreOf(ctx).retrieve(input, AlgorithmBase::dependencies()[0]));
+   SC_CHECK_YIELD(EventStoreRegistry::of(ctx).retrieve(input, AlgorithmBase::dependencies()[0]));
    auto output = std::make_unique<int>(-1);
-   SC_CHECK_YIELD(eventStoreOf(ctx).record(std::move(output), AlgorithmBase::products()[0]));
+   SC_CHECK_YIELD(EventStoreRegistry::of(ctx).record(std::move(output), AlgorithmBase::products()[0]));
 
    std::cout << MEMBER_FUNCTION_NAME(ThirdAlgorithm) + " part1, " << ctx.info() << std::endl;
    ctx.scheduler->setCudaSlotState(ctx.slotNumber, 2, false);
