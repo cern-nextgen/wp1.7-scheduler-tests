@@ -7,9 +7,12 @@
 #include "EventStore.hpp"
 #include "MemberFunctionName.hpp"
 #include "Scheduler.hpp"
+#include "../../tests/NVTXUtils.hpp"
+using WP17Scheduler::NVTXUtils::nvtxcolor;
 
 
 StatusCode ThirdAlgorithm::initialize() {
+   nvtx3::scoped_range range{MEMBER_FUNCTION_NAME(ThirdAlgorithm)};
    SC_CHECK(AlgorithmBase::addDependency<int>("Object2"));
    SC_CHECK(AlgorithmBase::addProduct<int>("Object4"));
    std::cout << MEMBER_FUNCTION_NAME(ThirdAlgorithm) << std::endl;
@@ -18,6 +21,7 @@ StatusCode ThirdAlgorithm::initialize() {
 
 
 AlgorithmBase::AlgCoInterface ThirdAlgorithm::execute(EventContext ctx) const {
+   nvtx3::unique_range range{MEMBER_FUNCTION_NAME(ThirdAlgorithm) + " (1)", nvtxcolor(ctx.eventNumber), nvtx3::payload{ctx.eventNumber}};
    const int* input = nullptr;
    SC_CHECK_YIELD(EventStoreRegistry::of(ctx).retrieve(input, AlgorithmBase::dependencies()[0]));
    auto output = std::make_unique<int>(-1);
@@ -33,6 +37,7 @@ AlgorithmBase::AlgCoInterface ThirdAlgorithm::execute(EventContext ctx) const {
 
 
 StatusCode ThirdAlgorithm::finalize() {
+   nvtx3::scoped_range range{MEMBER_FUNCTION_NAME(ThirdAlgorithm)};
    std::cout << MEMBER_FUNCTION_NAME(ThirdAlgorithm) << std::endl;
    return StatusCode::SUCCESS;
 }

@@ -7,9 +7,12 @@
 #include "EventStore.hpp"
 #include "MemberFunctionName.hpp"
 #include "Scheduler.hpp"
+#include "../../tests/NVTXUtils.hpp"
+using WP17Scheduler::NVTXUtils::nvtxcolor;
 
 
 StatusCode SecondAlgorithm::initialize() {
+   nvtx3::scoped_range range{MEMBER_FUNCTION_NAME(SecondAlgorithm)};
    SC_CHECK(AlgorithmBase::addDependency<int>("Object1"));
    SC_CHECK(AlgorithmBase::addProduct<int>("Object3"));
    std::cout << MEMBER_FUNCTION_NAME(SecondAlgorithm) << std::endl;
@@ -18,6 +21,7 @@ StatusCode SecondAlgorithm::initialize() {
 
 
 AlgorithmBase::AlgCoInterface SecondAlgorithm::execute(EventContext ctx) const {
+   nvtx3::unique_range range{MEMBER_FUNCTION_NAME(SecondAlgorithm) + " (1)", nvtxcolor(ctx.eventNumber), nvtx3::payload{ctx.eventNumber}};
    const int* input = nullptr;
    SC_CHECK_YIELD(EventStoreRegistry::of(ctx).retrieve(input, AlgorithmBase::dependencies()[0]));
    auto output = std::make_unique<int>(-1);
@@ -27,8 +31,10 @@ AlgorithmBase::AlgCoInterface SecondAlgorithm::execute(EventContext ctx) const {
    ctx.scheduler->setCudaSlotState(ctx.slotNumber, 1, false);
    launchTestKernel3(ctx.stream);
    cudaLaunchHostFunc(ctx.stream, notifyScheduler, new Notification{ctx, 1});
+   { auto r = std::move(range); } // End range
    co_yield StatusCode::SUCCESS;
 
+   nvtx3::unique_range range2{MEMBER_FUNCTION_NAME(SecondAlgorithm) + " (2)", nvtxcolor(ctx.eventNumber), nvtx3::payload{ctx.eventNumber}};
    std::cout << MEMBER_FUNCTION_NAME(SecondAlgorithm) + " part2, " << ctx.info() << std::endl;
    ctx.scheduler->setCudaSlotState(ctx.slotNumber, 1, false);
    launchTestKernel4(ctx.stream);
@@ -39,6 +45,7 @@ AlgorithmBase::AlgCoInterface SecondAlgorithm::execute(EventContext ctx) const {
 
 
 StatusCode SecondAlgorithm::finalize() {
+   nvtx3::scoped_range range{MEMBER_FUNCTION_NAME(SecondAlgorithm)};
    std::cout << MEMBER_FUNCTION_NAME(SecondAlgorithm) << std::endl;
    return StatusCode::SUCCESS;
 }
