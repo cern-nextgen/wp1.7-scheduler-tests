@@ -21,7 +21,7 @@ StatusCode SecondAlgorithm::initialize() {
 
 
 AlgorithmBase::AlgCoInterface SecondAlgorithm::execute(EventContext ctx) const {
-   nvtx3::unique_range range{MEMBER_FUNCTION_NAME(SecondAlgorithm) + " (1)", nvtxcolor(ctx.eventNumber), nvtx3::payload{ctx.eventNumber}};
+   nvtx3::unique_range range{MEMBER_FUNCTION_NAME(SecondAlgorithm) + " part1" + ctx.info(), nvtxcolor(ctx.eventNumber), nvtx3::payload{ctx.eventNumber}};
    const int* input = nullptr;
    SC_CHECK_YIELD(EventStoreRegistry::of(ctx).retrieve(input, AlgorithmBase::dependencies()[0]));
    auto output = std::make_unique<int>(-1);
@@ -34,7 +34,7 @@ AlgorithmBase::AlgCoInterface SecondAlgorithm::execute(EventContext ctx) const {
    { auto r = std::move(range); } // End range
    co_yield StatusCode::SUCCESS;
 
-   nvtx3::unique_range range2{MEMBER_FUNCTION_NAME(SecondAlgorithm) + " (2)", nvtxcolor(ctx.eventNumber), nvtx3::payload{ctx.eventNumber}};
+   nvtx3::unique_range range2{MEMBER_FUNCTION_NAME(SecondAlgorithm) + " part2" + ctx.info(), nvtxcolor(ctx.eventNumber), nvtx3::payload{ctx.eventNumber}};
    std::cout << MEMBER_FUNCTION_NAME(SecondAlgorithm) + " part2, " << ctx.info() << std::endl;
    ctx.scheduler->setCudaSlotState(ctx.slotNumber, 1, false);
    launchTestKernel4(ctx.stream);
