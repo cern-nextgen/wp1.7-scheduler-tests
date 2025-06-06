@@ -31,7 +31,9 @@ AlgorithmBase::AlgCoInterface ThirdAlgorithm::execute(EventContext ctx) const {
    ctx.scheduler->setCudaSlotState(ctx.slotNumber, 2, false);
    launchTestKernel5(ctx.stream);
    cudaLaunchHostFunc(ctx.stream, notifyScheduler, new Notification{ctx, 2});
-   cudaStreamSynchronize(ctx.stream);
+   { auto r = std::move(range); } // End range
+   co_yield StatusCode::SUCCESS;
+   auto range2 = nvtx3::scoped_range{MEMBER_FUNCTION_NAME(ThirdAlgorithm) + " conclusion" + ctx.info(), nvtxcolor(ctx.eventNumber), nvtx3::payload{ctx.eventNumber}};
    co_return StatusCode::SUCCESS;
 }
 

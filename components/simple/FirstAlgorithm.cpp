@@ -52,8 +52,10 @@ AlgorithmBase::AlgCoInterface FirstAlgorithm::execute(EventContext ctx) const {
    ctx.scheduler->setCudaSlotState(ctx.slotNumber, 0, false);
    launchTestKernel2(ctx.stream);
    cudaLaunchHostFunc(ctx.stream, notifyScheduler, new Notification{ctx, 0});
-   cudaStreamSynchronize(ctx.stream);
    range2.reset();
+   // Suspend the coroutine until the kernel is finished.
+   co_yield StatusCode::SUCCESS;
+   auto range3 = std::make_unique<nvtx3::unique_range>(MEMBER_FUNCTION_NAME(FirstAlgorithm) + " conclusion, " + ctx.info(), nvtxcolor(ctx.eventNumber), nvtx3::payload{gettid()});
    co_return StatusCode::SUCCESS;
 }
 
