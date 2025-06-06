@@ -40,30 +40,30 @@ static __global__ void testKernel5() {
 
 
 void launchTestKernel1(cudaStream_t stream) {
-   std::cout << __func__ << std::endl;
+   // std::cout << __func__ << std::endl;
    testKernel1<<<2, 2, 0, stream>>>();
 }
 
 
 void launchTestKernel2(cudaStream_t stream) {
-   std::cout << __func__ << std::endl;
+   // std::cout << __func__ << std::endl;
    testKernel2<<<2, 2, 0, stream>>>();
 }
 
 
 void launchTestKernel3(cudaStream_t stream) {
-   std::cout << __func__ << std::endl;
+   // std::cout << __func__ << std::endl;
    testKernel3<<<2, 2, 0, stream>>>();
 }
 
 
 void launchTestKernel4(cudaStream_t stream) {
-   std::cout << __func__ << std::endl;
+   // std::cout << __func__ << std::endl;
    testKernel4<<<2, 2, 0, stream>>>();
 }
 
 
 void launchTestKernel5(cudaStream_t stream) {
-   std::cout << __func__ << std::endl;
+   // std::cout << __func__ << std::endl;
    testKernel5<<<2, 2, 0, stream>>>();
 }
