@@ -14,11 +14,11 @@ mark_as_advanced( SCHED_TRACCC_SOURCE )
 FetchContent_Declare( traccc ${SCHED_TRACCC_SOURCE} OVERRIDE_FIND_PACKAGE )
 
 # Options used in the build of traccc.
-set( TRACCC_BUILD_TESTING FALSE CACHE BOOL
+set( TRACCC_BUILD_TESTING TRUE CACHE BOOL
    "Turn off the build of the traccc unit tests" )
-set( TRACCC_BUILD_BENCHMARKS FALSE CACHE BOOL
+set( TRACCC_BUILD_BENCHMARKS TRUE CACHE BOOL
    "Turn off the build of the traccc benchmarks" )
-set( TRACCC_BUILD_EXAMPLES FALSE CACHE BOOL
+set( TRACCC_BUILD_EXAMPLES TRUE CACHE BOOL
    "Turn off the build of the traccc examples" )
 set( TRACCC_USE_ROOT FALSE CACHE BOOL
    "Don't use ROOT as part of the traccc build" )

@@ -14,7 +14,9 @@
 // Forward declarations.
 struct EventContext;
 
-
+/**
+ * @brief Base class for algorithms. Algorithms express dependencies on products
+ */
 class AlgorithmBase {
 public:
    using AlgCoInterface = CoInterface<Promise<StatusCode, StatusCode>>;

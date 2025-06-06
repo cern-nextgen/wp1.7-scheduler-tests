@@ -10,6 +10,13 @@
 
 
 namespace {
+/**
+ * @brief Helper function setting the bits in the bitset corresponding to the objects (names), with a mapping of
+ * name to index based on the position of the string in allObjectsVec.
+ * @param allObjectsVec vector of string mapping string position to bit position (reset at startup).
+ * @param objects list of string to be added to the bitset
+ * @param objBitset the bitset.
+ */
 void setBits(const std::vector<std::string>& allObjectsVec,
              const std::vector<std::string>& objects, boost::dynamic_bitset<>& objBitset) {
    objBitset.reset();

@@ -47,10 +47,10 @@ StatusCode TracccCellsAlgorithm::initialize() {
 
 AlgorithmBase::AlgCoInterface TracccCellsAlgorithm::execute(EventContext ctx) const {
    SC_CHECK_YIELD(
-       eventStoreOf(ctx).record(std::move(m_detector), AlgorithmBase::products()[0]));
+       EventStoreRegistry::of(ctx).record(std::move(m_detector), AlgorithmBase::products()[0]));
    SC_CHECK_YIELD(
-       eventStoreOf(ctx).record(std::move(m_det_descr), AlgorithmBase::products()[1]));
-   SC_CHECK_YIELD(eventStoreOf(ctx).record(std::move(m_cells), AlgorithmBase::products()[2]));
+    EventStoreRegistry::of(ctx).record(std::move(m_det_descr), AlgorithmBase::products()[1]));
+   SC_CHECK_YIELD(EventStoreRegistry::of(ctx).record(std::move(m_cells), AlgorithmBase::products()[2]));
 
    std::cout << MEMBER_FUNCTION_NAME(TracccCellsAlgorithm) << std::endl;
    co_return StatusCode::SUCCESS;
@@ -80,13 +80,13 @@ StatusCode TracccComputeAlgorithm::initialize() {
 
 AlgorithmBase::AlgCoInterface TracccComputeAlgorithm::execute(EventContext ctx) const {
    const traccc::default_detector::host* detector_dep = nullptr;
-   SC_CHECK_YIELD(eventStoreOf(ctx).retrieve(detector_dep, AlgorithmBase::dependencies()[0]));
+   SC_CHECK_YIELD(EventStoreRegistry::of(ctx).retrieve(detector_dep, AlgorithmBase::dependencies()[0]));
 
    const traccc::silicon_detector_description::host* det_descr_dep = nullptr;
-   SC_CHECK_YIELD(eventStoreOf(ctx).retrieve(det_descr_dep, AlgorithmBase::dependencies()[1]));
+   SC_CHECK_YIELD(EventStoreRegistry::of(ctx).retrieve(det_descr_dep, AlgorithmBase::dependencies()[1]));
 
    const std::vector<traccc::edm::silicon_cell_collection::host>* cells_dep = nullptr;
-   SC_CHECK_YIELD(eventStoreOf(ctx).retrieve(cells_dep, AlgorithmBase::dependencies()[2]));
+   SC_CHECK_YIELD(EventStoreRegistry::of(ctx).retrieve(cells_dep, AlgorithmBase::dependencies()[2]));
 
    const auto& cells = (*cells_dep)[ctx.eventNumber % m_numEvents];
    std::cout << "Event number: " << ctx.eventNumber << std::endl;
