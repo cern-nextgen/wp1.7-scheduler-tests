@@ -1,6 +1,7 @@
-#include <cstdlib>
 #include <iostream>
-
+#include <string>
+#include <cstdlib>
+#include <getopt.h> // For command-line argument parsing
 #include "Scheduler.hpp"
 #include "StatusCode.hpp"
 #include "FirstAlgorithm.hpp"
@@ -10,22 +11,64 @@
 // Add pragma to suppress optimization for debugging purposes.
 #pragma GCC optimize ("O0")
 
-int main() {
-  // Create the scheduler.
-  Scheduler scheduler(1000, 4, 4);
+void printHelp() {
+    std::cout << "Usage: schedule_simple [options]\n"
+              << "Options:\n"
+              << "  --threads <N>    Set the number of threads (default: 4)\n"
+              << "  --streams <N>    Set the number of CUDA streams (default: 4)\n"
+              << "  --help           Show this help message\n";
+}
 
-  // Create the algorithms.
-  FirstAlgorithm firstAlgorithm;
-  SecondAlgorithm secondAlgorithm;
-  ThirdAlgorithm thirdAlgorithm;
+int main(int argc, char* argv[]) {
+    int threads = 4; // Default number of threads
+    int streams = 4; // Default number of streams
 
-  // Add the algorithms to the scheduler.
-  scheduler.addAlgorithm(firstAlgorithm);
-  scheduler.addAlgorithm(secondAlgorithm);
-  scheduler.addAlgorithm(thirdAlgorithm);
+    // Define long options
+    static struct option long_options[] = {
+        {"threads", required_argument, nullptr, 't'},
+        {"streams", required_argument, nullptr, 's'},
+        {"help", no_argument, nullptr, 'h'},
+        {nullptr, 0, nullptr, 0}
+    };
 
-  // Run the scheduler.
-  auto w = scheduler.run().what();
-  std::cout << "Final scheduler status: " << w << std::endl;
-  return EXIT_SUCCESS;
+    // Parse command-line arguments
+    int opt;
+    while ((opt = getopt_long(argc, argv, "t:s:h", long_options, nullptr)) != -1) {
+        switch (opt) {
+            case 't':
+                threads = std::stoi(optarg);
+                break;
+            case 's':
+                streams = std::stoi(optarg);
+                break;
+            case 'h':
+                printHelp();
+                return 0;
+            default:
+                printHelp();
+                return 1;
+        }
+    }
+
+    // Print configuration
+    std::cout << "Starting scheduler with " << threads << " threads and " << streams << " streams.\n";
+
+    // Initialize the scheduler
+    Scheduler scheduler(/*events=*/500, threads, streams);
+
+    // Create the algorithms
+    FirstAlgorithm firstAlgorithm;
+    SecondAlgorithm secondAlgorithm;
+    ThirdAlgorithm thirdAlgorithm;
+
+    // Add the algorithms to the scheduler
+    scheduler.addAlgorithm(firstAlgorithm);
+    scheduler.addAlgorithm(secondAlgorithm);
+    scheduler.addAlgorithm(thirdAlgorithm);
+
+    // Run the scheduler
+    auto w = scheduler.run().what();
+    std::cout << "Final scheduler status: " << w << std::endl;
+
+    return EXIT_SUCCESS;
 }
