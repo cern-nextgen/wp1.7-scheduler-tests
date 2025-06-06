@@ -7,6 +7,8 @@
 #include "SecondAlgorithm.hpp"
 #include "ThirdAlgorithm.hpp"
 
+// Add pragma to suppress optimization for debugging purposes.
+#pragma GCC optimize ("O0")
 
 int main() {
   // Create the scheduler.
@@ -23,6 +25,7 @@ int main() {
   scheduler.addAlgorithm(thirdAlgorithm);
 
   // Run the scheduler.
-  std::cout << (scheduler.run().what()) << std::endl;
+  auto w = scheduler.run().what();
+  std::cout << "Final scheduler status: " << w << std::endl;
   return EXIT_SUCCESS;
 }

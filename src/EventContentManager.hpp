@@ -49,6 +49,7 @@ public:
    /**
     * @brief Check if an algorithm's data dependencies are availble.
     * @note Thread safe
+    * @todo Could be renamed to `areAlgoDependenciesMet()`.
     */
    bool isAlgExecutable(std::size_t alg) const;
 

@@ -87,30 +87,36 @@ public:
 
 private:
    using action_type = std::function<StatusCode()>;
+   
+   /**
+    * @brief Internal state of the scheduler for each algorithm.
+    */
+   struct AlgorithmState {
+      /// CUDA status @todo Add details, `bool` meaning.
+      bool cudaFinished = false;
+
+      /// Algorithm results. Only valid if the algorithm is finished.
+      StatusCode status = StatusCode::SUCCESS;
+
+      /// @todo Execution state of each algorithm in the slot.
+      AlgExecState execState = AlgExecState::UNSCHEDULED;
+
+      /// Coroutine interface to algo execution. @todo Add details.
+      AlgorithmBase::AlgCoInterface coroutine;
+   };
 
    /**
     * @brief Internal state of the scheduler for an individual even being processed.
     * Note that SlotState is movable but not copyable since AlgCoInterface is not copyable.
-    * @todo The algorithm states should be a structure instead of a bunch of vectors accessed by the same index.
     */
    struct SlotState {
       /// Event ID being processed in this slot
       int eventNumber = 0;
-
-      /// CUDA status @todo Add details, `bool` meaning.
-      std::vector<bool> cudaFinished{};
-
-      /// Algorithm results. Only valid if the algorithm is finished.
-      std::vector<StatusCode> algStatuses{};
-
-      /// @todo Execution state of each algorithm in the slot.
-      std::vector<AlgExecState> algExecStates{};
-
-      /// @todo Add details.
-      std::vector<AlgorithmBase::AlgCoInterface> coroutines{};
-
+      /// States of the individual algorithms in the slot.
+      std::vector<AlgorithmState> algorithms;        // State of each algorithm in the slot.
+      
       /// @todo Add details. Seems to handles algoritms dependencies and data object collection.
-      std::unique_ptr<EventContentManager> eventManager{};
+      std::unique_ptr<EventContentManager> eventManager;
    };
 
    /**

@@ -82,7 +82,7 @@ Scheduler::~Scheduler() {
 
 
 void Scheduler::setCudaSlotState(int slot, std::size_t alg, bool state) {
-   m_slotStates[slot].cudaFinished[alg] = state;
+    m_slotStates[slot].algorithms[alg].cudaFinished = state;
 }
 
 
@@ -98,10 +98,7 @@ void Scheduler::initSchedulerState() {
    m_slotStates.clear();
    for(int i = 0; i < m_slots; ++i) {
       m_slotStates.push_back({m_nextEvent++});
-      m_slotStates.back().cudaFinished.assign(m_algorithms.size(), true);
-      m_slotStates.back().algStatuses.assign(m_algorithms.size(), StatusCode::SUCCESS);
-      m_slotStates.back().algExecStates.assign(m_algorithms.size(), AlgExecState::UNSCHEDULED);
-      m_slotStates.back().coroutines.resize(m_algorithms.size());
+      m_slotStates.back().algorithms.resize(m_algorithms.size());
       m_slotStates.back().eventManager = std::make_unique<EventContentManager>(m_algorithms);
    }
 
@@ -129,110 +126,102 @@ StatusCode Scheduler::executeAction(action_type& f) {
 StatusCode Scheduler::update() {
    // Set up actions for launching the next algorithm in each event slot.
    // We iterate over indices as they are used to join slots and CUDA srtreams.
-   if(!m_runStarted) {
-      throw RuntimeError("In Scheduler::update(): Cannot update before run start");
-   }
-   for(int slot = 0; slot < m_slots; ++slot) {
-      SlotState& slotState = m_slotStates[slot];
+    if (!m_runStarted) {
+        throw RuntimeError("In Scheduler::update(): Cannot update before run start");
+    }
+    for (int slot = 0; slot < m_slots; ++slot) {
+        SlotState& slotState = m_slotStates[slot];
 
-      if(std::ranges::all_of(slotState.algExecStates,
-                             [](AlgExecState x) { return x == AlgExecState::FINISHED; })) {
-         EventContext ctx{slotState.eventNumber, slot, this, m_streams[slot]};
-         EventStoreRegistry::of(ctx).clear();
-         slotState.eventNumber = m_nextEvent++;
-         // vector<bool> not compatible with std::ranges.
-         std::fill(slotState.cudaFinished.begin(), slotState.cudaFinished.end(), true);
-         std::ranges::fill(slotState.algExecStates, AlgExecState::UNSCHEDULED);
-         slotState.eventManager->reset();
-      }
-
-      // Stop processing events when target.
-      if(slotState.eventNumber >= m_events) {
-         continue;
-      }
-
-      for(std::size_t alg = 0; alg < m_algorithms.size(); ++alg) {
-         if(slotState.algExecStates[alg] == AlgExecState::SCHEDULED) {
-            continue;
-         } else if(slotState.algExecStates[alg] == AlgExecState::FINISHED) {
-            continue;
-         } else if(slotState.algExecStates[alg] == AlgExecState::ERROR) {
-            m_actionQueue.push([algStatus = slotState.algStatuses[alg]]() -> StatusCode {
-               return algStatus;
+        if (std::ranges::all_of(slotState.algorithms,
+                                [](const AlgorithmState& algo) { return algo.execState == AlgExecState::FINISHED; })) {
+            EventContext ctx{slotState.eventNumber, slot, this, m_streams[slot]};
+            EventStoreRegistry::of(ctx).clear();
+            slotState.eventNumber = m_nextEvent++;
+            std::ranges::for_each(slotState.algorithms, [](AlgorithmState& algo) {
+                algo.cudaFinished = true;
+                algo.execState = AlgExecState::UNSCHEDULED;
             });
-            return slotState.algStatuses[alg];
-         }
+            slotState.eventManager->reset();
+        }
 
-         if(!slotState.eventManager->isAlgExecutable(alg)) {
+        if (slotState.eventNumber >= m_events) {
             continue;
-         }
+        }
 
-         if(slotState.algExecStates[alg] == AlgExecState::SUSPENDED
-            && not slotState.cudaFinished[alg]) {
-            continue;
-         }
+        for (std::size_t alg = 0; alg < m_algorithms.size(); ++alg) {
+            auto& algoSt = slotState.algorithms[alg];
+            switch (algoSt.execState.getState()) {
+                case AlgExecState::SCHEDULED:
+                case AlgExecState::FINISHED:
+                    continue;
+                case AlgExecState::ERROR:
+                    m_actionQueue.push([st=algoSt.execState.getStatus()]() -> StatusCode { return st; });
+                    return algoSt.execState.getStatus();
+            }
+            if (!slotState.eventManager->isAlgExecutable(alg)) {
+                continue;
+            }
 
-         // This assertion might help keeping track of new additions to AlgExecState.
-         // We should only reach this point if the algorithm is either UNSCHEDULED or SUSPENDED with CUDA finished, i.e. ready to be scheduled.
-         assert((slotState.algExecStates[alg] == AlgExecState::UNSCHEDULED)
-                || (slotState.algExecStates[alg] == AlgExecState::SUSPENDED
-                    && slotState.cudaFinished[alg]));
+            if (algoSt.execState == AlgExecState::SUSPENDED && !algoSt.cudaFinished) {
+                continue;
+            }
 
-         pushAction(slot, alg, slotState);
-      }
-   }
-   return StatusCode::SUCCESS;
+            assert((algoSt.execState == AlgExecState::UNSCHEDULED) ||
+                   (algoSt.execState == AlgExecState::SUSPENDED && algoSt.cudaFinished));
+
+            pushAction(slot, alg, slotState);
+        }
+    }
+    return StatusCode::SUCCESS;
 }
 
 
 void Scheduler::pushAction(int slot, std::size_t ialg, SlotState& slotState) {
-   slotState.algExecStates[ialg] = AlgExecState::SCHEDULED;
+    auto& algoSt = slotState.algorithms[ialg];
+    algoSt.execState = AlgExecState::SCHEDULED;
 
-   // Add the action that would schedule the execution of the algorithm.
-   // m_arena.execute() is used to ensure that the action is executed (synchronously) in our task arena.
-   // next, m_group.run() launches the asynchronous task in the group to be able to `wait()`.
-   m_arena.execute([this, ialg, slot, &slotState, &alg = m_algorithms[ialg].get()]() {
-      m_group.run([this, ialg, slot, &slotState, &alg]() {
-         if(slotState.coroutines[ialg].empty()) {
-            // Do not resume the first time coroutine is launched because initial_suspend never
-            // suspends.
-            EventContext ctx{slotState.eventNumber, slot, this, m_streams[slot]};
-            slotState.coroutines[ialg] = alg.execute(ctx);
-         } else {
-            slotState.coroutines[ialg].resume();
-         }
-
-         StatusCode algStatus;
-         if(slotState.coroutines[ialg].isResumable()) {
-            algStatus = slotState.coroutines[ialg].getYield();
-         } else {
-            algStatus = slotState.coroutines[ialg].getReturn();
-            if(!slotState.eventManager->setAlgExecuted(ialg)) {
-               slotState.algExecStates[ialg] = AlgExecState::ERROR;
-            }
-         }
-
-         // At the last algorithm in the event, decrement the remaining event counter.
-         if(ialg == m_algorithms.size() - 1
-            && !slotState.coroutines[ialg].isResumable()) {
-            m_remainingEvents.fetch_sub(1);
-         }
-
-         slotState.algStatuses[ialg] = algStatus;
-         if(!algStatus) {
-            slotState.algExecStates[ialg] = AlgExecState::ERROR;
-            m_actionQueue.push([algStatus]() -> StatusCode { return algStatus; });
-         } else {
-            if(slotState.coroutines[ialg].isResumable()) {
-               slotState.algExecStates[ialg] = AlgExecState::SUSPENDED;
+    m_arena.execute([this, ialg, slot, &slotState, &alg = m_algorithms[ialg].get()]() {
+        m_group.run([this, ialg, slot, &slotState, &alg]() {
+            auto& algoSt = slotState.algorithms[ialg];
+            if (algoSt.coroutine.empty()) {
+                // Do not resume the first time coroutine is launched because initial_suspend never
+                // suspends.
+                EventContext ctx{slotState.eventNumber, slot, this, m_streams[slot]};
+                algoSt.coroutine = alg.execute(ctx);
             } else {
-               slotState.algExecStates[ialg] = AlgExecState::FINISHED;
-               slotState.coroutines[ialg].setEmpty();
+                algoSt.coroutine.resume();
             }
-            m_actionQueue.push([this]() -> StatusCode { return update(); });
-         }
-      });
-   });
+
+            StatusCode algStatus;
+            if (algoSt.coroutine.isResumable()) {
+                algStatus = algoSt.coroutine.getYield();
+            } else {
+                algStatus = algoSt.coroutine.getReturn();
+                if (!slotState.eventManager->setAlgExecuted(ialg)) {
+                    algoSt.execState = AlgExecState::ERROR;
+                }
+            }
+
+            // At the last algorithm in the event, decrement the remaining event counter.
+            if (ialg == m_algorithms.size() - 1 && !algoSt.coroutine.isResumable()) {
+                m_remainingEvents.fetch_sub(1);
+            }
+
+            algoSt.status = algStatus;
+            if (!algStatus) {
+                algoSt.execState = AlgExecState::ERROR;
+                m_actionQueue.push([=]() -> StatusCode { return algStatus; });
+            } else {
+                if (algoSt.coroutine.isResumable()) {
+                    algoSt.execState = AlgExecState::SUSPENDED;
+                } else {
+                    algoSt.execState = AlgExecState::FINISHED;
+                    algoSt.coroutine.setEmpty();
+                }
+                m_actionQueue.push([this]() -> StatusCode { return update(); });
+            }
+        });
+    });
 }
 
 
@@ -240,12 +229,14 @@ void Scheduler::printStatuses() const {
    std::cout << std::endl;
    std::cout << std::endl;
    std::cout << "Printing all statuses" << std::endl;
-   for(std::size_t i{0}; const auto& slotState : m_slotStates) {
-      for(std::size_t j{0}; const auto& algStatus : slotState.algStatuses) {
-         std::cout << "slot: " << i << ", algorithm number: " << j++ << "\n"
-                   << algStatus.what() << std::endl
-                   << std::endl;
-      }
-      ++i;
-   }
+    for (std::size_t i{0}; const auto& slotState : m_slotStates) {
+        std::cout << "Slot number: " << i << ", event number: " << slotState.eventNumber << " -> ";
+        for (std::size_t j{0}; const auto& algo : slotState.algorithms) {
+            std::cout << "algorithm[" << j++ << "]: " << algo.status.what() << ", ";
+        }
+        std::cout << std::endl;
+        ++i;
+    }
+   std::cout << "Remaining events: " << m_remainingEvents.load() << std::endl;
+   std::cout << std::endl;
 }
