@@ -113,6 +113,7 @@ public:
     */
    template <typename T>
    bool contains(const std::string& name) const {
+      std::shared_lock<std::shared_mutex> globalLock(m_globalMutex); // Shared lock for map access
       auto it = m_store.find(name);
       if (it == m_store.end()) {
          return false;
@@ -130,6 +131,7 @@ public:
     */
    template <typename T>
    StatusCode retrieve(const T*& obj, const std::string& name) {
+      std::shared_lock<std::shared_mutex> globalLock(m_globalMutex); // Shared lock for map access
       auto it = m_store.find(name);
       if (it == m_store.end()) {
          return StatusCode::FAILURE;
@@ -151,7 +153,7 @@ public:
     */
    template <typename T>
    StatusCode record(std::unique_ptr<T>&& obj, const std::string& name) {
-      // Cannot record multiple objects with the same name.
+      std::unique_lock<std::shared_mutex> globalLock(m_globalMutex); // Exclusive lock for map modification
       auto it = m_store.find(name);
       if (it != m_store.end()) {
          return StatusCode::FAILURE;
@@ -159,7 +161,6 @@ public:
 
       ValueWithMutex newValue;
       newValue.value = std::make_unique<ObjectHolder<T>>(std::move(obj));
-      std::unique_lock<std::shared_mutex> lock(m_globalMutex); // Lock the global mutex for write
       m_store[name] = std::move(newValue);
       return StatusCode::SUCCESS;
    }
@@ -168,7 +169,7 @@ public:
     * @brief Clears the store and deletes all the products.
     */
    void clear() {
-      std::unique_lock<std::shared_mutex> lock(m_globalMutex); // Lock the global mutex for write
+      std::unique_lock<std::shared_mutex> globalLock(m_globalMutex); // Exclusive lock for map modification
       m_store.clear();
    }
 
