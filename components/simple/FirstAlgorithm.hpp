@@ -6,7 +6,14 @@
 
 class FirstAlgorithm : public AlgorithmBase {
 public:
-   virtual StatusCode initialize() override;
-   virtual AlgCoInterface execute(EventContext ctx) const override;
-   virtual StatusCode finalize() override;
+    // Constructor with optional error parameters
+    FirstAlgorithm(bool errorEnabled = false, int errorEventId = -1);
+
+    StatusCode initialize() override;
+    AlgCoInterface execute(EventContext ctx) const override;
+    StatusCode finalize() override;
+
+private:
+    bool m_errorEnabled;  // Whether the error is enabled
+    int m_errorEventId;   // Event ID where the error occurs
 };

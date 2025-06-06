@@ -6,7 +6,7 @@
 
 class ThirdAlgorithm : public AlgorithmBase {
 public:
-   virtual StatusCode initialize() override;
-   virtual AlgCoInterface execute(EventContext ctx) const override;
-   virtual StatusCode finalize() override;
+   StatusCode initialize() override;
+   AlgCoInterface execute(EventContext ctx) const override;
+   StatusCode finalize() override;
 };
