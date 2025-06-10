@@ -12,7 +12,7 @@ BINARY="$SCRIPT_DIR/schedule_simple"
 EVENTS=2000
 
 # Output CSV header
-echo "Slots,Threads,Bandwidth (events/sec)"
+echo "Slots,Threads,Rate"
 
 # Loop over threads (1 to 10)
 for THREADS in {1..10}; do
