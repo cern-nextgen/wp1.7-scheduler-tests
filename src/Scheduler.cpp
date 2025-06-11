@@ -33,30 +33,29 @@ void Scheduler::addAlgorithm(AlgorithmBase& alg) {
    m_algorithms.push_back(alg);
 }
 
+StatusCode Scheduler::run(int eventsToProcess, RunStats& stats) {
+   // Lock and algorithm registration.
+   if (!m_runStarted) {
+        m_runStarted = true;
+        m_events = eventsToProcess;
 
-StatusCode Scheduler::run() {
-   // Lock algorithm registration.
-   m_runStarted = true;
+        // Initialize all the algorithms.
+        if (StatusCode status = AlgorithmBase::for_all(m_algorithms, &AlgorithmBase::initialize);
+            !status) {
+            return status;
+        }
 
-   // Initialize all the algorithms.
-   if (StatusCode status = AlgorithmBase::for_all(m_algorithms, &AlgorithmBase::initialize);
-       !status) {
-      return status;
-   }
+        initSchedulerState();
+    }
 
-   initSchedulerState();
-
-
-   // Record the start time.
+   m_remainingEvents.store(eventsToProcess);
    auto startTime = std::chrono::high_resolution_clock::now();
 
-   // Schedule the first set of algorithms.
    action_type firstAction = [this]() { return update(); };
    if (StatusCode status = executeAction(firstAction); !status) {
       return status;
    }
 
-   // Execute "actions" until all events are processed.
    action_type action;
    while (m_remainingEvents.load() > 0) {
       m_actionQueue.pop(action);
@@ -65,25 +64,26 @@ StatusCode Scheduler::run() {
       }
    }
 
-   // Make sure all tasks finish.
    tbb::task_group_status taskStatus = m_group.wait();
 
-
-   // Record the end time.
    auto endTime = std::chrono::high_resolution_clock::now();
    
    assert(taskStatus != tbb::task_group_status::canceled);
 
-   // Finalize all the algorithms.
    if (StatusCode status = AlgorithmBase::for_all(m_algorithms, &AlgorithmBase::finalize);
        !status) {
       return status;
    }
 
-   // Calculate and print throughput.
    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count();
-   double throughput = static_cast<double>(m_events) / (duration / 1000.0); // Events per second
-   std::cout << "Processed " << m_events << " events in " << duration << " ms (" << throughput << " events/sec)" << std::endl;
+   double rate = static_cast<double>(m_events) / (duration / 1000.0); // Events per second
+
+   // Store run statistics
+   stats.events = eventsToProcess;
+   stats.rate = rate;
+   stats.duration = duration;
+
+   //std::cout << "Processed " << m_events << " events in " << duration << " ms (" << rate << " events/sec)" << std::endl;
 
    return StatusCode::SUCCESS;
 }

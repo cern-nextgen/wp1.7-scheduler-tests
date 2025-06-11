@@ -93,8 +93,14 @@ int main(int argc, char* argv[]) {
     scheduler.addAlgorithm(thirdAlgorithm);
 
     // Run the scheduler
-    auto w = scheduler.run().what();
-    std::cout << "Final scheduler status: " << w << std::endl;
+    Scheduler::RunStats stats;
+    if (StatusCode status = scheduler.run(events, stats); !status) {
+        std::cerr << "Scheduler run failed: " << status.what() << std::endl;
+        return EXIT_FAILURE;
+    }
+    std::cout << "Scheduler run completed successfully.\n";
+    std::cout << "Processed " << stats.events << " events in " << stats.duration << " ms (" << stats.rate << " events/sec)" << std::endl;
+
 
     return EXIT_SUCCESS;
 }

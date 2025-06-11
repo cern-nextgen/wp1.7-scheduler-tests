@@ -43,6 +43,13 @@ namespace WP17Scheduler {
  */
 class Scheduler {
 public:
+   // Struct to hold run statistics
+   struct RunStats {
+      int events = 0;
+      double rate = 0.0;      // events/sec
+      long long duration = 0; // milliseconds
+   };
+
    /**
     * @brief Scheduler constructor
     * @param events Number of events
@@ -66,10 +73,12 @@ public:
     */
    void addAlgorithm(AlgorithmBase& alg); 
 
-   /** 
-    * @brief  Main scheduler loop
+   /**
+    * @brief Main scheduler loop with statistics. Re-runable, so we can warm up before measuring performance.
+    * @param eventsToProcess Number of events to process.
+    * @param stats Reference to RunStats structure to store statistics.
     */
-   StatusCode run();
+   StatusCode run(int eventsToProcess, RunStats& stats);
 
    /**
     * @brief Sets the CUDA state to `state` for algorithm number `alg` on slot number `slot`.

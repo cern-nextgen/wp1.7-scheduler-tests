@@ -20,7 +20,8 @@ int main() {
    scheduler.addAlgorithm(computeAlg);
 
    // Run the scheduler.
-   auto w = scheduler.run().what();
+   Scheduler::RunStats stats;
+   auto w = scheduler.run(1000, stats).what();
    std::cout << w << std::endl;
    return EXIT_SUCCESS;
 }
