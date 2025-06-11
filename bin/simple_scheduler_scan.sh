@@ -9,6 +9,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BINARY="$SCRIPT_DIR/schedule_simple"
 
 # Number of events for each run
+WARMUP=50
 EVENTS=2000
 
 # Output CSV header
@@ -19,7 +20,7 @@ for THREADS in {1..10}; do
     # Loop over slots (5 to 50, step 5)
     for SLOTS in $(seq 5 5 50); do
         # Run the binary and capture the output
-        OUTPUT=$($BINARY --events $EVENTS --threads $THREADS --streams $SLOTS 2>&1)
+        OUTPUT=$($BINARY --warmup $WARMUP --events $EVENTS --threads $THREADS --streams $SLOTS 2>&1)
 
         # Extract the bandwidth from the output
         BANDWIDTH=$(echo "$OUTPUT" | grep -oP '(?<=\().*?(?= events/sec)' | awk '{print $1}')
