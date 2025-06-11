@@ -56,7 +56,7 @@ public:
     * @param threads number of threads
     * @param slots Number of slots (i.e. concurrent events being processed).
     */
-   Scheduler(int events = 500, int threads = 4, int slots = 4);
+   Scheduler(int threads = 4, int slots = 4);
 
    // Forbidden constructors
    Scheduler(const Scheduler&) = delete;

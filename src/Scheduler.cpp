@@ -13,7 +13,7 @@
 #include "EventStore.hpp"
 
 
-Scheduler::Scheduler(int /*events*/, int threads, int slots)
+Scheduler::Scheduler(int threads, int slots)
     : m_threads{threads},
       m_slots{slots},
       m_nextEvent{},

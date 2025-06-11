@@ -9,7 +9,7 @@
 
 int main() {
    // Create the scheduler.
-   Scheduler scheduler(1000, 4, 4);
+   Scheduler scheduler(4, 4);
 
    // Create the algorithms.
    TracccCellsAlgorithm cellsAlg(10);
