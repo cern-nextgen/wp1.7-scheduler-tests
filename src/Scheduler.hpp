@@ -177,9 +177,6 @@ private:
     */
    void printStatuses() const;
 
-   /// @brief Number of events to process.
-   int m_events;
-
    /// @brief Number of threads to use.
    int m_threads;
 
@@ -191,6 +188,9 @@ private:
 
    /// @brief Flag controling the switchover from configuring (registering algorithms) to running.
    bool m_runStarted = false;
+
+   /// @brief Target event number for the current run.
+   int m_targetEventId = 0;
 
    /// @brief Number of events remaining to be processed.
    std::atomic_int m_remainingEvents;

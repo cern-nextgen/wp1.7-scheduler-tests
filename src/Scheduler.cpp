@@ -13,9 +13,8 @@
 #include "EventStore.hpp"
 
 
-Scheduler::Scheduler(int events, int threads, int slots)
-    : m_events{events},
-      m_threads{threads},
+Scheduler::Scheduler(int /*events*/, int threads, int slots)
+    : m_threads{threads},
       m_slots{slots},
       m_nextEvent{},
       m_remainingEvents{},
@@ -37,7 +36,6 @@ StatusCode Scheduler::run(int eventsToProcess, RunStats& stats) {
    // Lock and algorithm registration.
    if (!m_runStarted) {
         m_runStarted = true;
-        m_events = eventsToProcess;
 
         // Initialize all the algorithms.
         if (StatusCode status = AlgorithmBase::for_all(m_algorithms, &AlgorithmBase::initialize);
@@ -48,7 +46,9 @@ StatusCode Scheduler::run(int eventsToProcess, RunStats& stats) {
         initSchedulerState();
     }
 
+   // TODO: get rid of this parallel counting?
    m_remainingEvents.store(eventsToProcess);
+   m_targetEventId += eventsToProcess;
    auto startTime = std::chrono::high_resolution_clock::now();
 
    action_type firstAction = [this]() { return update(); };
@@ -76,7 +76,7 @@ StatusCode Scheduler::run(int eventsToProcess, RunStats& stats) {
    }
 
    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count();
-   double rate = static_cast<double>(m_events) / (duration / 1000.0); // Events per second
+   double rate = static_cast<double>(eventsToProcess) / (duration / 1000.0); // Events per second
 
    // Store run statistics
    stats.events = eventsToProcess;
@@ -108,7 +108,7 @@ void Scheduler::actionUpdate() {
 
 void Scheduler::initSchedulerState() {
    m_nextEvent = 0;
-   m_remainingEvents = m_events;
+   m_remainingEvents = 0;
 
    m_slotStates.clear();
    for(int i = 0; i < m_slots; ++i) {
@@ -160,7 +160,7 @@ StatusCode Scheduler::update() {
             slotState.eventManager->reset();
         }
 
-        if (slotState.eventNumber >= m_events) {
+        if (slotState.eventNumber >= m_targetEventId) {
             continue;
         }
 
