@@ -108,8 +108,7 @@ int main(int argc, char* argv[]) {
         }
         std::cout << "Warm up run completed: "
                   << warmupStats.events << " events in "
-                  << warmupStats.duration << " ms ("
-                  << warmupStats.rate << " events/sec)" << std::endl;
+                  << warmupStats.duration << " ms." << std::endl;
     }
 
     // Main run
