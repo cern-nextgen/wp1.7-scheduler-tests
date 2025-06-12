@@ -19,25 +19,30 @@ __global__ void kernelC(float* data, int N) {
 }
 
 int main() {
-    constexpr int N = 1024;
-    constexpr int bytes = N * sizeof(float);
+    // 10MB of floats
+    constexpr int N = 10 * 1024 * 1024;
 
-    float* d_data;
-    int Nnc = N; // Number of elements in the array, non const for compilation
-    cudaMalloc(&d_data, bytes);
-    cudaMemset(d_data, 0, bytes);
+    // Allocate a separate buffer for each graph
+    float* d_data1;
+    float* d_data2;
+    cudaMalloc(&d_data1, N * sizeof(float));
+    cudaMalloc(&d_data2, N * sizeof(float));
+    cudaMemset(d_data1, 0, N * sizeof(float));
+    cudaMemset(d_data2, 0, N * sizeof(float));
 
     cudaStream_t stream1, stream2;
     cudaStreamCreate(&stream1);
     cudaStreamCreate(&stream2);
 
-    // CUDA Graph setup
+    // CUDA Graph setup for first buffer
     cudaGraph_t graph;
     cudaGraphExec_t graphExec;
 
-    void* kernelArgsA[] = { &d_data, &Nnc };
-    void* kernelArgsB[] = { &d_data, &Nnc };
-    void* kernelArgsC[] = { &d_data, &Nnc };
+    int Nnc = N; // Non-const for kernel params
+
+    void* kernelArgsA[] = { &d_data1, &Nnc };
+    void* kernelArgsB[] = { &d_data1, &Nnc };
+    void* kernelArgsC[] = { &d_data1, &Nnc };
 
     cudaGraphCreate(&graph, 0);
 
@@ -56,7 +61,7 @@ int main() {
     // Kernel B node
     cudaKernelNodeParams kernelNodeParamsB = {};
     kernelNodeParamsB.func = (void*)kernelB;
-    kernelNodeParamsB.gridDim = dim3((N + 255) / 256);
+    kernelNodeParamsB.gridDim = dim3((Nnc + 255) / 256);
     kernelNodeParamsB.blockDim = dim3(256);
     kernelNodeParamsB.sharedMemBytes = 0;
     kernelNodeParamsB.kernelParams = kernelArgsB;
@@ -68,7 +73,7 @@ int main() {
     // Kernel C node
     cudaKernelNodeParams kernelNodeParamsC = {};
     kernelNodeParamsC.func = (void*)kernelC;
-    kernelNodeParamsC.gridDim = dim3((N + 255) / 256);
+    kernelNodeParamsC.gridDim = dim3((Nnc + 255) / 256);
     kernelNodeParamsC.blockDim = dim3(256);
     kernelNodeParamsC.sharedMemBytes = 0;
     kernelNodeParamsC.kernelParams = kernelArgsC;
@@ -81,15 +86,36 @@ int main() {
     cudaGraphInstantiate(&graphExec, graph, nullptr, nullptr, 0);
     cudaGraphLaunch(graphExec, stream1);
 
-   
-
-    // Clone the graph
+    // Clone the graph for the second buffer
     cudaGraph_t clonedGraph;
     cudaGraphClone(&clonedGraph, graph);
 
-    // Instantiate and launch the cloned graph on stream2
+    // Update kernel arguments for the cloned graph to use d_data2
+    void* kernelArgsA2[] = { &d_data2, &Nnc };
+    void* kernelArgsB2[] = { &d_data2, &Nnc };
+    void* kernelArgsC2[] = { &d_data2, &Nnc };
+
+    // Instantiate the cloned graph
     cudaGraphExec_t clonedGraphExec;
     cudaGraphInstantiate(&clonedGraphExec, clonedGraph, nullptr, nullptr, 0);
+
+    // Update kernel node parameters in the cloned graph to use d_data2
+    cudaGraphNode_t clonedNodes[3];
+    size_t numNodes = 0;
+    cudaGraphGetNodes(clonedGraph, clonedNodes, &numNodes);
+    // If you know the order, you can update directly:
+    cudaKernelNodeParams params;
+    cudaGraphKernelNodeGetParams(clonedNodes[0], &params);
+    params.kernelParams = kernelArgsA2;
+    cudaGraphKernelNodeSetParams(clonedNodes[0], &params);
+    cudaGraphKernelNodeGetParams(clonedNodes[1], &params);
+    params.kernelParams = kernelArgsB2;
+    cudaGraphKernelNodeSetParams(clonedNodes[1], &params);
+    cudaGraphKernelNodeGetParams(clonedNodes[2], &params);
+    params.kernelParams = kernelArgsC2;
+    cudaGraphKernelNodeSetParams(clonedNodes[2], &params);
+
+    // Launch the cloned graph on stream2
     cudaGraphLaunch(clonedGraphExec, stream2);
 
     // Synchronize both streams at the end
@@ -105,7 +131,8 @@ int main() {
     cudaGraphDestroy(clonedGraph);
     cudaStreamDestroy(stream1);
     cudaStreamDestroy(stream2);
-    cudaFree(d_data);
+    cudaFree(d_data1);
+    cudaFree(d_data2);
 
     return 0;
 }
