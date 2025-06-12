@@ -29,34 +29,107 @@ __global__ void kernelC(float* data, int N) {
     if (idx < N) data[idx] -= 3.0f;
 }
 
+// Function to allocate memory, stream, clone and run a CUDA graph
+void run_cloned_graph(const cudaGraph_t& refGraph, int N, float*& d_data, cudaStream_t& stream, const char* label) {
+    // Allocate stream
+    CUDA_ASSERT(cudaStreamCreate(&stream));
+
+    // Clone the reference graph
+    cudaGraph_t clonedGraph;
+    CUDA_ASSERT(cudaGraphClone(&clonedGraph, refGraph));
+
+    // Allocate memory node
+    cudaMemAllocNodeParams allocParams = {};
+    allocParams.poolProps.allocType = cudaMemAllocationTypePinned;
+    allocParams.poolProps.location.type = cudaMemLocationTypeDevice;
+    allocParams.poolProps.location.id = 0; // Use the default device TODO:  this can be tricky to populate!
+    allocParams.bytesize = N * sizeof(float);
+    cudaGraphNode_t allocNode;
+    CUDA_ASSERT(cudaGraphAddMemAllocNode(&allocNode, clonedGraph, nullptr, 0, &allocParams));
+
+    // Memset node
+    cudaMemsetParams memsetParams = {};
+    memsetParams.dst = allocParams.dptr; // Use the pointer from the allocation node
+    memsetParams.value = 0;
+    memsetParams.pitch = 0;
+    memsetParams.elementSize = sizeof(float);
+    memsetParams.width = N;
+    memsetParams.height = 1;
+    cudaGraphNode_t memsetNode;
+    CUDA_ASSERT(cudaGraphAddMemsetNode(&memsetNode, clonedGraph, &allocNode, 1, &memsetParams));
+
+    // Prepare kernel arguments
+    int Nnc = N;
+    void* kernelArgsA[] = { &allocParams.dptr, &Nnc };
+    void* kernelArgsB[] = { &allocParams.dptr, &Nnc };
+    void* kernelArgsC[] = { &allocParams.dptr, &Nnc };
+
+    // Update kernel node parameters in the cloned graph to use d_data and N
+    constexpr size_t constNumNodes = 5;
+    cudaGraphNode_t clonedNodes[constNumNodes];
+    size_t numNodes = constNumNodes;
+    CUDA_ASSERT(cudaGraphGetNodes(clonedGraph, clonedNodes, &numNodes));
+
+    // Set dependencies: memsetNode -> kernelA
+    CUDA_ASSERT(cudaGraphAddDependencies(clonedGraph, &memsetNode, clonedNodes, 1));
+
+    cudaKernelNodeParams params;
+    CUDA_ASSERT(cudaGraphKernelNodeGetParams(clonedNodes[0], &params));
+    params.kernelParams = kernelArgsA;
+    params.gridDim = dim3((N + 255) / 256);
+    CUDA_ASSERT(cudaGraphKernelNodeSetParams(clonedNodes[0], &params));
+    CUDA_ASSERT(cudaGraphKernelNodeGetParams(clonedNodes[1], &params));
+    params.kernelParams = kernelArgsB;
+    params.gridDim = dim3((N + 255) / 256);
+    CUDA_ASSERT(cudaGraphKernelNodeSetParams(clonedNodes[1], &params));
+    CUDA_ASSERT(cudaGraphKernelNodeGetParams(clonedNodes[2], &params));
+    params.kernelParams = kernelArgsC;
+    params.gridDim = dim3((N + 255) / 256);
+    CUDA_ASSERT(cudaGraphKernelNodeSetParams(clonedNodes[2], &params));
+
+    // Instantiate and launch the cloned graph
+    cudaGraphExec_t clonedGraphExec;
+    CUDA_ASSERT(cudaGraphInstantiate(&clonedGraphExec, clonedGraph, nullptr, nullptr, 0));
+    CUDA_ASSERT(cudaGraphLaunch(clonedGraphExec, stream));
+
+    // Print grid dimensions extracted from the cloned graph
+    std::cout << label << " grid dimensions (extracted from node params):\n";
+    CUDA_ASSERT(cudaGraphKernelNodeGetParams(clonedNodes[0], &params));
+    std::cout << "  kernelA: " << params.gridDim.x << " blocks\n";
+    CUDA_ASSERT(cudaGraphKernelNodeGetParams(clonedNodes[1], &params));
+    std::cout << "  kernelB: " << params.gridDim.x << " blocks\n";
+    CUDA_ASSERT(cudaGraphKernelNodeGetParams(clonedNodes[2], &params));
+    std::cout << "  kernelC: " << params.gridDim.x << " blocks\n";
+
+    // Synchronize stream and cleanup
+    CUDA_ASSERT(cudaStreamSynchronize(stream));
+    std::cout << label << " executed kernels A -> B -> C in succession." << std::endl;
+
+    CUDA_ASSERT(cudaGraphExecDestroy(clonedGraphExec));
+    CUDA_ASSERT(cudaGraphDestroy(clonedGraph));
+    CUDA_ASSERT(cudaStreamDestroy(stream));
+    // Memory will be freed by the graph's memory node
+}
+
 int main() {
     // First buffer: 10MB of floats
     constexpr int N1 = 10 * 1024 * 1024;
     // Second buffer: 100 million floats (~400MB)
     constexpr int N2 = 100 * 1000 * 1000;
 
-    // Allocate a separate buffer for each graph
+    // Allocate memory for the reference graph (not executed)
     float* d_data1;
-    float* d_data2;
     CUDA_ASSERT(cudaMalloc(&d_data1, N1 * sizeof(float)));
-    CUDA_ASSERT(cudaMalloc(&d_data2, N2 * sizeof(float)));
     CUDA_ASSERT(cudaMemset(d_data1, 0, N1 * sizeof(float)));
-    CUDA_ASSERT(cudaMemset(d_data2, 0, N2 * sizeof(float)));
 
-    cudaStream_t stream1, stream2;
-    CUDA_ASSERT(cudaStreamCreate(&stream1));
-    CUDA_ASSERT(cudaStreamCreate(&stream2));
-
-    // CUDA Graph setup for first buffer
-    cudaGraph_t graph;
-    cudaGraphExec_t graphExec;
-
-    int Nnc1 = N1; // Non-const for kernel params
-
+    // Prepare kernel arguments for the reference graph
+    int Nnc1 = N1;
     void* kernelArgsA[] = { &d_data1, &Nnc1 };
     void* kernelArgsB[] = { &d_data1, &Nnc1 };
     void* kernelArgsC[] = { &d_data1, &Nnc1 };
 
+    // Create the reference CUDA graph (but do not instantiate or launch it)
+    cudaGraph_t graph;
     CUDA_ASSERT(cudaGraphCreate(&graph, 0));
 
     // Kernel A node
@@ -95,102 +168,16 @@ int main() {
     cudaGraphNode_t nodeC;
     CUDA_ASSERT(cudaGraphAddKernelNode(&nodeC, graph, &nodeB, 1, &kernelNodeParamsC));
 
-    // Clone the graph for the second buffer
-    cudaGraph_t clonedGraph;
-    CUDA_ASSERT(cudaGraphClone(&clonedGraph, graph));
+    // Do NOT instantiate or launch the reference/original graph
 
-    // Update kernel arguments for the cloned graph to use d_data2 and N2
-    int Nnc2 = N2;
-    void* kernelArgsA2[] = { &d_data2, &Nnc2 };
-    void* kernelArgsB2[] = { &d_data2, &Nnc2 };
-    void* kernelArgsC2[] = { &d_data2, &Nnc2 };
+    // Now run the cloned/customized graph
+    float* d_data2 = nullptr;
+    cudaStream_t stream2;
+    run_cloned_graph(graph, N2, d_data2, stream2, "Cloned graph (100M floats)");
 
-    // Update kernel node parameters in the cloned graph to use d_data2 and N2
-    constexpr size_t constNumNodes = 5;
-    cudaGraphNode_t clonedNodes[constNumNodes];
-    size_t numNodes = constNumNodes;
-    CUDA_ASSERT(cudaGraphGetNodes(clonedGraph, clonedNodes, &numNodes));
-    std::cout << "Number of nodes in cloned graph: " << numNodes << std::endl;
-    // If you know the order, you can update directly:
-    cudaKernelNodeParams params;
-    CUDA_ASSERT(cudaGraphKernelNodeGetParams(clonedNodes[0], &params));
-    params.kernelParams = kernelArgsA2;
-    params.gridDim = dim3((N2 + 255) / 256);
-    std::cout << "First node parameters dump:\n";
-    std::cout << "  func: " << params.func << "\n";
-    std::cout << "  gridDim: " << params.gridDim.x << " blocks\n";
-    std::cout << "  blockDim: " << params.blockDim.x << " threads\n";
-    std::cout << "  sharedMemBytes: " << params.sharedMemBytes << " bytes\n";
-    std::cout << "  kernelParams: " << params.kernelParams << "\n";
-    std::cout << "  extra: " << params.extra << "\n";
-    std::cout << "  kernel function: ";
-    if (params.func == kernelA) {
-        std::cout << "kernelA\n";
-    } else if (params.func == kernelB) {
-        std::cout << "kernelB\n";
-    } else if (params.func == kernelC) {
-        std::cout << "kernelC\n";
-    } else {
-        std::cout << "Unknown function pointer: " << params.func << "\n";
-    }
-    // Update the parameters for each cloned node
-    CUDA_ASSERT(cudaGraphKernelNodeSetParams(clonedNodes[0], &params));
-    CUDA_ASSERT(cudaGraphKernelNodeGetParams(clonedNodes[1], &params));
-    params.kernelParams = kernelArgsB2;
-    params.gridDim = dim3((N2 + 255) / 256);
-    CUDA_ASSERT(cudaGraphKernelNodeSetParams(clonedNodes[1], &params));
-    CUDA_ASSERT(cudaGraphKernelNodeGetParams(clonedNodes[2], &params));
-    params.kernelParams = kernelArgsC2;
-    params.gridDim = dim3((N2 + 255) / 256);
-    CUDA_ASSERT(cudaGraphKernelNodeSetParams(clonedNodes[2], &params));
-
-     // Instantiate and launch the original graph on stream1
-    CUDA_ASSERT(cudaGraphInstantiate(&graphExec, graph, nullptr, nullptr, 0));
-    CUDA_ASSERT(cudaGraphLaunch(graphExec, stream1));
-
-    // Instantiate the cloned graph
-    cudaGraphExec_t clonedGraphExec;
-    CUDA_ASSERT(cudaGraphInstantiate(&clonedGraphExec, clonedGraph, nullptr, nullptr, 0));
-
-    // Launch the cloned graph on stream2
-    CUDA_ASSERT(cudaGraphLaunch(clonedGraphExec, stream2));
-
-    // Print grid dimensions for the original graph
-    std::cout << "Original graph grid dimensions:\n";
-    std::cout << "  kernelA: " << kernelNodeParamsA.gridDim.x << " blocks\n";
-    std::cout << "  kernelB: " << kernelNodeParamsB.gridDim.x << " blocks\n";
-    std::cout << "  kernelC: " << kernelNodeParamsC.gridDim.x << " blocks\n";
-
-    // Print grid dimensions for the cloned graph
-    std::cout << "Cloned graph expoected grid dimensions:\n";
-    std::cout << "  kernelA: " << ((N2 + 255) / 256) << " blocks\n";
-    std::cout << "  kernelB: " << ((N2 + 255) / 256) << " blocks\n";
-    std::cout << "  kernelC: " << ((N2 + 255) / 256) << " blocks\n";
-    
-    // Print grid dimensions extracted from the cloned graph
-    std::cout << "Cloned graph grid dimensions (extracted from node params):\n";
-    CUDA_ASSERT(cudaGraphKernelNodeGetParams(clonedNodes[0], &params));
-    std::cout << "  kernelA: " << params.gridDim.x << " blocks\n";
-    CUDA_ASSERT(cudaGraphKernelNodeGetParams(clonedNodes[1], &params));
-    std::cout << "  kernelB: " << params.gridDim.x << " blocks\n";
-    CUDA_ASSERT(cudaGraphKernelNodeGetParams(clonedNodes[2], &params));
-    std::cout << "  kernelC: " << params.gridDim.x << " blocks\n";
-
-    // Synchronize both streams at the end
-    CUDA_ASSERT(cudaStreamSynchronize(stream1));
-    std::cout << "Original CUDA Graph executed kernels A -> B -> C in succession on stream1 (10MB)." << std::endl;
-    CUDA_ASSERT(cudaStreamSynchronize(stream2));
-    std::cout << "Cloned CUDA Graph executed kernels A -> B -> C in succession on stream2 (100M floats)." << std::endl;
-
-    // Cleanup
-    CUDA_ASSERT(cudaGraphExecDestroy(graphExec));
+    // Cleanup reference graph and buffer
     CUDA_ASSERT(cudaGraphDestroy(graph));
-    CUDA_ASSERT(cudaGraphExecDestroy(clonedGraphExec));
-    CUDA_ASSERT(cudaGraphDestroy(clonedGraph));
-    CUDA_ASSERT(cudaStreamDestroy(stream1));
-    CUDA_ASSERT(cudaStreamDestroy(stream2));
     CUDA_ASSERT(cudaFree(d_data1));
-    CUDA_ASSERT(cudaFree(d_data2));
 
     return 0;
 }
