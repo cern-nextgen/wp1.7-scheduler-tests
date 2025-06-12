@@ -27,8 +27,9 @@ int main() {
     cudaMalloc(&d_data, bytes);
     cudaMemset(d_data, 0, bytes);
 
-    cudaStream_t stream;
-    cudaStreamCreate(&stream);
+    cudaStream_t stream1, stream2;
+    cudaStreamCreate(&stream1);
+    cudaStreamCreate(&stream2);
 
     // CUDA Graph setup
     cudaGraph_t graph;
@@ -76,17 +77,35 @@ int main() {
     cudaGraphNode_t nodeC;
     cudaGraphAddKernelNode(&nodeC, graph, &nodeB, 1, &kernelNodeParamsC);
 
-    // Instantiate and launch the graph
+    // Instantiate and launch the original graph on stream1
     cudaGraphInstantiate(&graphExec, graph, nullptr, nullptr, 0);
-    cudaGraphLaunch(graphExec, stream);
-    cudaStreamSynchronize(stream);
+    cudaGraphLaunch(graphExec, stream1);
+
+   
+
+    // Clone the graph
+    cudaGraph_t clonedGraph;
+    cudaGraphClone(&clonedGraph, graph);
+
+    // Instantiate and launch the cloned graph on stream2
+    cudaGraphExec_t clonedGraphExec;
+    cudaGraphInstantiate(&clonedGraphExec, clonedGraph, nullptr, nullptr, 0);
+    cudaGraphLaunch(clonedGraphExec, stream2);
+
+    // Synchronize both streams at the end
+    cudaStreamSynchronize(stream1);
+    std::cout << "Original CUDA Graph executed kernels A -> B -> C in succession on stream1." << std::endl;
+    cudaStreamSynchronize(stream2);
+    std::cout << "Cloned CUDA Graph executed kernels A -> B -> C in succession on stream2." << std::endl;
 
     // Cleanup
     cudaGraphExecDestroy(graphExec);
     cudaGraphDestroy(graph);
-    cudaStreamDestroy(stream);
+    cudaGraphExecDestroy(clonedGraphExec);
+    cudaGraphDestroy(clonedGraph);
+    cudaStreamDestroy(stream1);
+    cudaStreamDestroy(stream2);
     cudaFree(d_data);
 
-    std::cout << "CUDA Graph executed kernels A -> B -> C in succession." << std::endl;
     return 0;
 }
