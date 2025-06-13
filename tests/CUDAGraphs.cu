@@ -99,39 +99,41 @@ public:
 
     // Launch the graph with new kernel arguments (customize with cudaGraphExec* functions)
     void launch(int N, cudaStream_t stream) {
-        std::lock_guard<std::mutex> lock(mutex_);
-
         // Allocate memory asynchronously for this launch
         float* d_data = nullptr;
         CUDA_ASSERT(cudaMallocAsync((void**)&d_data, N * sizeof(float), stream));
 
-        // Update memset params
-        memsetParams_.dst = d_data;
-        memsetParams_.width = N;
-        CUDA_ASSERT(cudaGraphExecMemsetNodeSetParams(graphExec_, memsetNode_, &memsetParams_));
+        // Take the lock before touching the shared variables
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+          // Update memset params
+          memsetParams_.dst = d_data;
+          memsetParams_.width = N;
+          CUDA_ASSERT(cudaGraphExecMemsetNodeSetParams(graphExec_, memsetNode_, &memsetParams_));
 
-        // Update kernel params
-        int Nnc = N;
-        void* kernelArgsA[] = { &d_data, &Nnc };
-        void* kernelArgsB[] = { &d_data, &Nnc };
-        void* kernelArgsC[] = { &d_data, &Nnc };
+          // Update kernel params
+          int Nnc = N;
+          void* kernelArgsA[] = { &d_data, &Nnc };
+          void* kernelArgsB[] = { &d_data, &Nnc };
+          void* kernelArgsC[] = { &d_data, &Nnc };
 
-        cudaKernelNodeParams params = kernelNodeParamsA_;
-        params.kernelParams = kernelArgsA;
-        params.gridDim = dim3((N + 255) / 256);
-        CUDA_ASSERT(cudaGraphExecKernelNodeSetParams(graphExec_, nodeA_, &params));
+          cudaKernelNodeParams params = kernelNodeParamsA_;
+          params.kernelParams = kernelArgsA;
+          params.gridDim = dim3((N + 255) / 256);
+          CUDA_ASSERT(cudaGraphExecKernelNodeSetParams(graphExec_, nodeA_, &params));
 
-        params = kernelNodeParamsB_;
-        params.kernelParams = kernelArgsB;
-        params.gridDim = dim3((N + 255) / 256);
-        CUDA_ASSERT(cudaGraphExecKernelNodeSetParams(graphExec_, nodeB_, &params));
+          params = kernelNodeParamsB_;
+          params.kernelParams = kernelArgsB;
+          params.gridDim = dim3((N + 255) / 256);
+          CUDA_ASSERT(cudaGraphExecKernelNodeSetParams(graphExec_, nodeB_, &params));
 
-        params = kernelNodeParamsC_;
-        params.kernelParams = kernelArgsC;
-        params.gridDim = dim3((N + 255) / 256);
-        CUDA_ASSERT(cudaGraphExecKernelNodeSetParams(graphExec_, nodeC_, &params));
+          params = kernelNodeParamsC_;
+          params.kernelParams = kernelArgsC;
+          params.gridDim = dim3((N + 255) / 256);
+          CUDA_ASSERT(cudaGraphExecKernelNodeSetParams(graphExec_, nodeC_, &params));
 
-        CUDA_ASSERT(cudaGraphLaunch(graphExec_, stream));
+          CUDA_ASSERT(cudaGraphLaunch(graphExec_, stream));
+        } // End of lock scope
 
         CUDA_ASSERT(cudaFreeAsync(d_data, stream));
     }
@@ -170,7 +172,7 @@ int main() {
     tbb::task_arena arena(NUM_STREAMS);
     tbb::task_group tg;
     constexpr size_t M = 1000 * 1000; // 1 million
-    std::vector<size_t> Ns{ 1 , 5 , 10 , 15 , 18, 20 };
+    std::vector<size_t> Ns{ 1 , 2, 3, 5, 7, 11 };
 
     // Arbitrary number of invocations
     constexpr int num_invocations = 100;
