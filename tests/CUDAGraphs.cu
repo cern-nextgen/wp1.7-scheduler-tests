@@ -1,6 +1,9 @@
 #include <cuda_runtime.h>
 #include <cuda.h>
 #include <iostream>
+#include <tbb/task_arena.h>
+#include <tbb/task_group.h>
+#include <mutex>
 
 // Macro to assert that CUDA calls do not fail
 #define CUDA_ASSERT(call) \
@@ -29,11 +32,8 @@ __global__ void kernelC(float* data, int N) {
     if (idx < N) data[idx] -= 3.0f;
 }
 
-// Function to allocate memory, stream, clone and run a CUDA graph
-void run_cloned_graph(const cudaGraph_t& refGraph, int N, float*& d_data, cudaStream_t& stream, const char* label) {
-    // Allocate stream
-    CUDA_ASSERT(cudaStreamCreate(&stream));
-
+// Function to allocate memory, clone and run a CUDA graph on a given stream
+void run_cloned_graph_on_stream(const cudaGraph_t& refGraph, int N, const char* label, cudaStream_t stream) {
     // Clone the reference graph
     cudaGraph_t clonedGraph;
     CUDA_ASSERT(cudaGraphClone(&clonedGraph, refGraph));
@@ -42,14 +42,14 @@ void run_cloned_graph(const cudaGraph_t& refGraph, int N, float*& d_data, cudaSt
     cudaMemAllocNodeParams allocParams = {};
     allocParams.poolProps.allocType = cudaMemAllocationTypePinned;
     allocParams.poolProps.location.type = cudaMemLocationTypeDevice;
-    allocParams.poolProps.location.id = 0; // Use the default device TODO:  this can be tricky to populate!
+    allocParams.poolProps.location.id = 0; // Use the default device
     allocParams.bytesize = N * sizeof(float);
     cudaGraphNode_t allocNode;
     CUDA_ASSERT(cudaGraphAddMemAllocNode(&allocNode, clonedGraph, nullptr, 0, &allocParams));
 
     // Memset node
     cudaMemsetParams memsetParams = {};
-    memsetParams.dst = allocParams.dptr; // Use the pointer from the allocation node
+    memsetParams.dst = allocParams.dptr;
     memsetParams.value = 0;
     memsetParams.pitch = 0;
     memsetParams.elementSize = sizeof(float);
@@ -93,29 +93,33 @@ void run_cloned_graph(const cudaGraph_t& refGraph, int N, float*& d_data, cudaSt
     CUDA_ASSERT(cudaGraphLaunch(clonedGraphExec, stream));
 
     // Print grid dimensions extracted from the cloned graph
-    std::cout << label << " grid dimensions (extracted from node params):\n";
-    CUDA_ASSERT(cudaGraphKernelNodeGetParams(clonedNodes[0], &params));
-    std::cout << "  kernelA: " << params.gridDim.x << " blocks\n";
-    CUDA_ASSERT(cudaGraphKernelNodeGetParams(clonedNodes[1], &params));
-    std::cout << "  kernelB: " << params.gridDim.x << " blocks\n";
-    CUDA_ASSERT(cudaGraphKernelNodeGetParams(clonedNodes[2], &params));
-    std::cout << "  kernelC: " << params.gridDim.x << " blocks\n";
+    {
+        static std::mutex print_mutex;
+        std::lock_guard<std::mutex> lock(print_mutex);
+        std::cout << label << " grid dimensions (extracted from node params):\n";
+        CUDA_ASSERT(cudaGraphKernelNodeGetParams(clonedNodes[0], &params));
+        std::cout << "  kernelA: " << params.gridDim.x << " blocks\n";
+        CUDA_ASSERT(cudaGraphKernelNodeGetParams(clonedNodes[1], &params));
+        std::cout << "  kernelB: " << params.gridDim.x << " blocks\n";
+        CUDA_ASSERT(cudaGraphKernelNodeGetParams(clonedNodes[2], &params));
+        std::cout << "  kernelC: " << params.gridDim.x << " blocks\n";
+    }
 
-    // Synchronize stream and cleanup
-    CUDA_ASSERT(cudaStreamSynchronize(stream));
-    std::cout << label << " executed kernels A -> B -> C in succession." << std::endl;
+    {
+        static std::mutex print_mutex;
+        std::lock_guard<std::mutex> lock(print_mutex);
+        std::cout << label << " executed kernels A -> B -> C in succession." << std::endl;
+    }
 
-    CUDA_ASSERT(cudaGraphExecDestroy(clonedGraphExec));
-    CUDA_ASSERT(cudaGraphDestroy(clonedGraph));
-    CUDA_ASSERT(cudaStreamDestroy(stream));
+    // Leak the cloned graph and its execution object for the moment
+    // CUDA_ASSERT(cudaGraphExecDestroy(clonedGraphExec));
+    // CUDA_ASSERT(cudaGraphDestroy(clonedGraph));
     // Memory will be freed by the graph's memory node
 }
 
 int main() {
-    // First buffer: 10MB of floats
-    constexpr int N1 = 10 * 1024 * 1024;
-    // Second buffer: 100 million floats (~400MB)
-    constexpr int N2 = 100 * 1000 * 1000;
+    // Placeholder for the original graph
+    constexpr int N1 = 1;
 
     // Allocate memory for the reference graph (not executed)
     float* d_data1;
@@ -170,10 +174,38 @@ int main() {
 
     // Do NOT instantiate or launch the reference/original graph
 
-    // Now run the cloned/customized graph
-    float* d_data2 = nullptr;
-    cudaStream_t stream2;
-    run_cloned_graph(graph, N2, d_data2, stream2, "Cloned graph (100M floats)");
+    // Stream pool setup
+    constexpr int NUM_STREAMS = 4;
+    cudaStream_t streams[NUM_STREAMS];
+    for (int i = 0; i < NUM_STREAMS; ++i) {
+        CUDA_ASSERT(cudaStreamCreate(&streams[i]));
+    }
+
+    // Now run the cloned/customized graph in a TBB task arena with a task_group
+    tbb::task_arena arena(NUM_STREAMS);
+    tbb::task_group tg;
+    constexpr size_t M = 1000 * 1000; // 1 million
+    std::vector<size_t> Ns{ 1 , 5 , 10 , 15 , 18, 20 };
+
+    // Arbitrary number of invocations
+    constexpr int num_invocations = 100;
+    for (int i = 0; i < num_invocations; ++i) {
+        size_t n = Ns[i % Ns.size()];
+        int stream_idx = i % NUM_STREAMS;
+        arena.execute([&, n, stream_idx, i] {
+            tg.run([&, n, stream_idx, i] {
+                std::string label = "Cloned graph (N=" + std::to_string(n * M) + ", stream=" + std::to_string(stream_idx) + ", call=" + std::to_string(i) + ")";
+                run_cloned_graph_on_stream(graph, n * M, label.c_str(), streams[stream_idx]);
+            });
+        });
+    }
+    tg.wait();
+
+    // Cleanup streams
+    for (int i = 0; i < NUM_STREAMS; ++i) {
+        cudaStreamSynchronize(streams[i]);
+        CUDA_ASSERT(cudaStreamDestroy(streams[i]));
+    }
 
     // Cleanup reference graph and buffer
     CUDA_ASSERT(cudaGraphDestroy(graph));

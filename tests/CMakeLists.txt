@@ -9,5 +9,5 @@ target_link_libraries(TestTBBTaskSuspension PUBLIC TBB::tbb CUDA::cudart)
 
 ## CUDA test
 add_executable(CUDAGraphTest CUDAGraphs.cu)
-target_link_libraries(CUDAGraphTest PRIVATE CUDA::cudart)
+target_link_libraries(CUDAGraphTest PRIVATE CUDA::cudart TBB::tbb) 
 add_test(NAME CUDAGraphTest COMMAND CUDAGraphTest)
