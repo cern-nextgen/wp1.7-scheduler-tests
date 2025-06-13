@@ -37,39 +37,32 @@ __global__ void kernelC(float* data, int N) {
 // Class encapsulating the original graph and its instantiation
 class OriginalGraph {
 public:
-    OriginalGraph(int N)
-        : N_(N)
+    OriginalGraph()
     {
-        // Build the graph with memory allocation and memset as nodes
+
         CUDA_ASSERT(cudaGraphCreate(&graph_, 0));
 
-        // Memory allocation node
-        cudaMemAllocNodeParams allocParams = {};
-        allocParams.poolProps.allocType = cudaMemAllocationTypePinned;
-        allocParams.poolProps.location.type = cudaMemLocationTypeDevice;
-        allocParams.poolProps.location.id = 0; // Default device
-        allocParams.bytesize = N_ * sizeof(float);
-        CUDA_ASSERT(cudaGraphAddMemAllocNode(&allocNode_, graph_, nullptr, 0, &allocParams));
-        d_data_ = static_cast<float*>(allocParams.dptr);
+        int N=1;
+        // Use a dummy pointer for initial graph construction (non null)
+        float* dummy_ptr;
+        CUDA_ASSERT(cudaMalloc(&dummy_ptr, N * sizeof(float)));
 
-        // Memset node
-        cudaMemsetParams memsetParams = {};
-        memsetParams.dst = allocParams.dptr;
-        memsetParams.value = 0;
-        memsetParams.pitch = 0;
-        memsetParams.elementSize = sizeof(float);
-        memsetParams.width = N_;
-        memsetParams.height = 1;
-        CUDA_ASSERT(cudaGraphAddMemsetNode(&memsetNode_, graph_, &allocNode_, 1, &memsetParams));
+        // Memset node params (store as member)
+        memsetParams_.dst = dummy_ptr;
+        memsetParams_.value = 0;
+        memsetParams_.pitch = 0;
+        memsetParams_.elementSize = sizeof(float);
+        memsetParams_.width = N;
+        memsetParams_.height = 1;
+        CUDA_ASSERT(cudaGraphAddMemsetNode(&memsetNode_, graph_, nullptr, 0, &memsetParams_));
 
-        int Nnc = N_;
-        void* kernelArgsA[] = { &d_data_, &Nnc };
-        void* kernelArgsB[] = { &d_data_, &Nnc };
-        void* kernelArgsC[] = { &d_data_, &Nnc };
+        void* kernelArgsA[] = { &dummy_ptr, &N };
+        void* kernelArgsB[] = { &dummy_ptr, &N };
+        void* kernelArgsC[] = { &dummy_ptr, &N };
 
         // Kernel A node
         kernelNodeParamsA_.func = (void*)kernelA;
-        kernelNodeParamsA_.gridDim = dim3((N_ + 255) / 256);
+        kernelNodeParamsA_.gridDim = dim3((N + 255) / 256);
         kernelNodeParamsA_.blockDim = dim3(256);
         kernelNodeParamsA_.sharedMemBytes = 0;
         kernelNodeParamsA_.kernelParams = kernelArgsA;
@@ -78,7 +71,7 @@ public:
 
         // Kernel B node
         kernelNodeParamsB_.func = (void*)kernelB;
-        kernelNodeParamsB_.gridDim = dim3((N_ + 255) / 256);
+        kernelNodeParamsB_.gridDim = dim3((N + 255) / 256);
         kernelNodeParamsB_.blockDim = dim3(256);
         kernelNodeParamsB_.sharedMemBytes = 0;
         kernelNodeParamsB_.kernelParams = kernelArgsB;
@@ -87,19 +80,15 @@ public:
 
         // Kernel C node
         kernelNodeParamsC_.func = (void*)kernelC;
-        kernelNodeParamsC_.gridDim = dim3((N_ + 255) / 256);
+        kernelNodeParamsC_.gridDim = dim3((N + 255) / 256);
         kernelNodeParamsC_.blockDim = dim3(256);
         kernelNodeParamsC_.sharedMemBytes = 0;
         kernelNodeParamsC_.kernelParams = kernelArgsC;
         kernelNodeParamsC_.extra = nullptr;
         CUDA_ASSERT(cudaGraphAddKernelNode(&nodeC_, graph_, &nodeB_, 1, &kernelNodeParamsC_));
 
-        // Add free node after kernel C
-        cudaMemFreeNodeParams freeParams = {};
-        freeParams.dptr = allocParams.dptr;
-        CUDA_ASSERT(cudaGraphAddMemFreeNode(&freeNode_, graph_, &nodeC_, 1, &freeParams));
-
         CUDA_ASSERT(cudaGraphInstantiate(&graphExec_, graph_, nullptr, nullptr, 0));
+        CUDA_ASSERT(cudaFree(dummy_ptr));
     }
 
     ~OriginalGraph() {
@@ -112,10 +101,20 @@ public:
     void launch(int N, cudaStream_t stream) {
         std::lock_guard<std::mutex> lock(mutex_);
 
+        // Allocate memory asynchronously for this launch
+        float* d_data = nullptr;
+        CUDA_ASSERT(cudaMallocAsync((void**)&d_data, N * sizeof(float), stream));
+
+        // Update memset params
+        memsetParams_.dst = d_data;
+        memsetParams_.width = N;
+        CUDA_ASSERT(cudaGraphExecMemsetNodeSetParams(graphExec_, memsetNode_, &memsetParams_));
+
+        // Update kernel params
         int Nnc = N;
-        void* kernelArgsA[] = { &d_data_, &Nnc };
-        void* kernelArgsB[] = { &d_data_, &Nnc };
-        void* kernelArgsC[] = { &d_data_, &Nnc };
+        void* kernelArgsA[] = { &d_data, &Nnc };
+        void* kernelArgsB[] = { &d_data, &Nnc };
+        void* kernelArgsC[] = { &d_data, &Nnc };
 
         cudaKernelNodeParams params = kernelNodeParamsA_;
         params.kernelParams = kernelArgsA;
@@ -133,15 +132,16 @@ public:
         CUDA_ASSERT(cudaGraphExecKernelNodeSetParams(graphExec_, nodeC_, &params));
 
         CUDA_ASSERT(cudaGraphLaunch(graphExec_, stream));
+
+        CUDA_ASSERT(cudaFreeAsync(d_data, stream));
     }
 
 private:
-    int N_;
-    float* d_data_;
     cudaGraph_t graph_;
     cudaGraphExec_t graphExec_;
-    cudaGraphNode_t allocNode_, memsetNode_, freeNode_;
+    cudaGraphNode_t memsetNode_;
     cudaGraphNode_t nodeA_, nodeB_, nodeC_;
+    cudaMemsetParams memsetParams_{};
     cudaKernelNodeParams kernelNodeParamsA_{}, kernelNodeParamsB_{}, kernelNodeParamsC_{};
     std::mutex mutex_;
 };
@@ -157,8 +157,7 @@ void run_cloned_graph_on_stream(OriginalGraph& refGraph, int N, const char* labe
 }
 
 int main() {
-    constexpr int N1 = 1;
-    OriginalGraph refGraph(N1);
+    OriginalGraph refGraph;
 
     // Stream pool setup
     constexpr int NUM_STREAMS = 4;
@@ -180,7 +179,7 @@ int main() {
         int stream_idx = i % NUM_STREAMS;
         arena.execute([&, n, stream_idx, i] {
             tg.run([&, n, stream_idx, i] {
-                std::string label = "Cloned graph (N=" + std::to_string(n * M) + ", stream=" + std::to_string(stream_idx) + ", call=" + std::to_string(i) + ")";
+                std::string label = "Customized graph (N=" + std::to_string(n * M) + ", stream=" + std::to_string(stream_idx) + ", call=" + std::to_string(i) + ")";
                 run_cloned_graph_on_stream(refGraph, n * M, label.c_str(), streams[stream_idx]);
             });
         });
