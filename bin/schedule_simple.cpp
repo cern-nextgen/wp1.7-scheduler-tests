@@ -13,64 +13,65 @@
 void printHelp() {
     std::cout << "Usage: schedule_simple [options]\n"
               << "Options:\n"
-              << "  -t, --threads <N>       Set the number of threads (default: 4)\n"
-              << "  -s, --streams <N>       Set the number of CUDA streams (default: 4)\n"
-              << "  -e, --events <N>        Set the number of events to process (default: 500)\n"
-              << "  -w, --warmup <N>        Set the number of warm up events (default: 0)\n"
-              << "  -o, --error-on          Enable error in FirstAlgorithm (default: off)\n"
-              << "  -n, --error-event <N>   Set the event ID where the error occurs (default: -1)\n"
-              << "  -v, --verbose           Enable verbose output (default: off)\n"
-              << "  -h, --help              Show this help message\n";
+              << "  --numberOfThreads <N>   Number of threads to use (default: 1, use 0 to use all CPU cores)\n"
+              << "  --numberOfStreams <N>   Number of concurrent events (default: 0 = numberOfThreads)\n"
+              << "  --warmupEvents <N>      Number of events to process before starting the benchmark (default: 0)\n"
+              << "  --maxEvents <N>         Number of events to process (default: -1 for all events in the input file)\n"
+              << "  --error-on              Enable error in FirstAlgorithm (default: off)\n"
+              << "  --error-event <N>       Set the event ID where the error occurs (default: -1)\n"
+              << "  --verbose               Enable verbose output (default: off)\n"
+              << "  --help                  Show this help message\n";
 }
 
 int main(int argc, char* argv[]) {
-    int threads = 4;       // Default number of threads
-    int streams = 4;       // Default number of streams
-    int events = 500;      // Default number of events
-    int warmupEvents = 0;  // Default number of warm up events
-    bool errorEnabled = false; // Default: no error
-    int errorEventId = -1; // Default: no specific event for error
-    bool verbose = false;  // Default: no verbose output
+    int threads = 1;            // Default number of threads
+    int streams = 0;            // Default number of streams (0 = numberOfThreads)
+    int warmupEvents = 0;       // Default number of warm up events
+    int events = -1;            // Default: all events in input file
+    bool errorEnabled = false;  // Default: no error
+    int errorEventId = -1;      // Default: no specific event for error
+    bool verbose = false;       // Default: no verbose output
 
     // Define long options
     static struct option long_options[] = {
-        {"threads", required_argument, nullptr, 't'},
-        {"streams", required_argument, nullptr, 's'},
-        {"events", required_argument, nullptr, 'e'},
-        {"warmup", required_argument, nullptr, 'w'},
-        {"error-on", no_argument, nullptr, 'o'},
-        {"error-event", required_argument, nullptr, 'n'},
-        {"verbose", no_argument, nullptr, 'v'},
-        {"help", no_argument, nullptr, 'h'},
+        {"numberOfThreads", required_argument, nullptr, 1},
+        {"numberOfStreams", required_argument, nullptr, 2},
+        {"warmupEvents", required_argument, nullptr, 3},
+        {"maxEvents", required_argument, nullptr, 4},
+        {"error-on", no_argument, nullptr, 5},
+        {"error-event", required_argument, nullptr, 6},
+        {"verbose", no_argument, nullptr, 7},
+        {"help", no_argument, nullptr, 8},
         {nullptr, 0, nullptr, 0}
     };
 
     // Parse command-line arguments
     int opt;
-    while ((opt = getopt_long(argc, argv, "t:s:e:w:on:vh", long_options, nullptr)) != -1) {
+    int long_index = 0;
+    while ((opt = getopt_long(argc, argv, "", long_options, &long_index)) != -1) {
         switch (opt) {
-            case 't':
+            case 1:
                 threads = std::stoi(optarg);
                 break;
-            case 's':
+            case 2:
                 streams = std::stoi(optarg);
                 break;
-            case 'e':
-                events = std::stoi(optarg);
-                break;
-            case 'w':
+            case 3:
                 warmupEvents = std::stoi(optarg);
                 break;
-            case 'o':
+            case 4:
+                events = std::stoi(optarg);
+                break;
+            case 5:
                 errorEnabled = true;
                 break;
-            case 'n':
+            case 6:
                 errorEventId = std::stoi(optarg);
                 break;
-            case 'v':
+            case 7:
                 verbose = true;
                 break;
-            case 'h':
+            case 8:
                 printHelp();
                 return 0;
             default:
@@ -80,7 +81,13 @@ int main(int argc, char* argv[]) {
     }
 
     // Print configuration
-    std::cout << "Starting scheduler with " << threads << " threads, " << streams << " streams, and " << events << " events.\n";
+    std::cout << "Starting scheduler with " << threads << " threads, " << streams << " streams, and ";
+    if (events == -1) {
+        std::cout << "all events";
+    } else {
+        std::cout << events << " events";
+    }
+    std::cout << ".\n";
     std::cout << "Warm up events: " << warmupEvents << "\n";
     std::cout << "Error in FirstAlgorithm: " << (errorEnabled ? "enabled" : "disabled")
               << ", event ID: " << errorEventId << "\n";
