@@ -2,6 +2,7 @@
 #include <string>
 #include <cstdlib>
 #include <getopt.h> // For command-line argument parsing
+#include <iomanip> // Add this include for std::scientific, std::fixed, etc.
 #include "Scheduler.hpp"
 #include "FirstAlgorithm.hpp"
 #include "SecondAlgorithm.hpp"
@@ -124,8 +125,17 @@ int main(int argc, char* argv[]) {
         std::cerr << "Scheduler run failed: " << status.what() << std::endl;
         return EXIT_FAILURE;
     }
-    std::cout << "Scheduler run completed successfully.\n";
-    std::cout << "Processed " << stats.events << " events in " << stats.duration << " ms (" << stats.rate << " events/sec)" << std::endl;
+
+    // Print output in the requested format
+    // Assume stats.duration is in milliseconds, convert to seconds
+    double time = stats.duration / 1000.0;
+    double cpu = 0;// TODO: we would need stats.cpu to match the CMS measurements 
+    int maxEvents = stats.events;
+    int numberOfThreads = threads;
+
+    std::cout << "Processed " << maxEvents << " events in " << std::scientific << time << " seconds, throughput "
+              << std::defaultfloat << (time > 0 ? (maxEvents / time) : 0) << " events/s, CPU usage per thread: " << std::fixed
+              << std::setprecision(1) << (time > 0 && numberOfThreads > 0 ? (cpu / time / numberOfThreads * 100) : 0.0) << "%" << std::endl;
 
     return EXIT_SUCCESS;
 }
