@@ -47,7 +47,6 @@ AlgorithmBase::AlgCoInterface FirstAlgorithm::execute(EventContext ctx) const {
     ctx.scheduler->setCudaSlotState(ctx.slotNumber, 0, false);
     launchTestKernel1(ctx.stream);
     cudaLaunchHostFunc(ctx.stream, notifyScheduler, new Notification{ctx, 0});
-    auto r1 = std::move(range1);
     range1.reset();
     if (m_verbose) {
         std::cout << MEMBER_FUNCTION_NAME(FirstAlgorithm) + " part1 end, " << ctx.info() << " tid=" << gettid() << std::endl;
