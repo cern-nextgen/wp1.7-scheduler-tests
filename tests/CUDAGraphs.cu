@@ -164,7 +164,7 @@ void run_cloned_graph_on_stream(OriginalGraph& refGraph, int N, const char* labe
 
 int main() {
     // Stream pool setup
-    constexpr int NUM_STREAMS = 4;
+    constexpr int NUM_STREAMS = 5;
     cudaStream_t streams[NUM_STREAMS];
     for (int i = 0; i < NUM_STREAMS; ++i) {
         CUDA_ASSERT(cudaStreamCreate(&streams[i]));
