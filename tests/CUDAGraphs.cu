@@ -22,6 +22,10 @@
 __global__ void kernelA(float* data, int N) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (idx < N) data[idx] += 1.0f;
+    // if (!idx) {
+    //     // Print a message from the first thread of kernel A
+    //     printf("Kernel A executed with N=%d\n", N);
+    // }
 }
 
 __global__ void kernelB(float* data, int N) {
@@ -154,13 +158,11 @@ void run_cloned_graph_on_stream(OriginalGraph& refGraph, int N, const char* labe
     {
         static std::mutex print_mutex;
         std::lock_guard<std::mutex> lock(print_mutex);
-        std::cout << label << " Launched kernels A -> B -> C in succession." << std::endl;
+        //std::cout << label << " Launched kernels A -> B -> C in succession." << std::endl;
     }
 }
 
 int main() {
-    OriginalGraph refGraph;
-
     // Stream pool setup
     constexpr int NUM_STREAMS = 4;
     cudaStream_t streams[NUM_STREAMS];
@@ -168,21 +170,25 @@ int main() {
         CUDA_ASSERT(cudaStreamCreate(&streams[i]));
     }
 
-    // Now run the cloned/customized graph in a TBB task arena with a task_group
     tbb::task_arena arena(NUM_STREAMS);
     tbb::task_group tg;
     constexpr size_t M = 1000 * 1000; // 1 million
     std::vector<size_t> Ns{ 1 , 2, 3, 5, 7, 11 };
+    constexpr int num_invocations = 1000;
 
-    // Arbitrary number of invocations
-    constexpr int num_invocations = 100;
-    for (int i = 0; i < num_invocations; ++i) {
-        size_t n = Ns[i % Ns.size()];
-        int stream_idx = i % NUM_STREAMS;
-        arena.execute([&, n, stream_idx, i] {
-            tg.run([&, n, stream_idx, i] {
-                std::string label = "Customized graph (N=" + std::to_string(n * M) + ", stream=" + std::to_string(stream_idx) + ", call=" + std::to_string(i) + ")";
-                run_cloned_graph_on_stream(refGraph, n * M, label.c_str(), streams[stream_idx]);
+    // Launch NUM_STREAMS TBB tasks
+    for (int t = 0; t < NUM_STREAMS; ++t) {
+        arena.execute([&, t] {
+            tg.run([&, t] {
+                OriginalGraph refGraph;
+                for (int i = 0; i < num_invocations; ++i) {
+                    size_t n = Ns[i % Ns.size()];
+                    int stream_idx = i % NUM_STREAMS;
+                    std::string label = "Customized graph (N=" + std::to_string(n * M) +
+                        ", stream=" + std::to_string(stream_idx) +
+                        ", call=" + std::to_string(i) + ", task=" + std::to_string(t) + ")";
+                    run_cloned_graph_on_stream(refGraph, n * M, label.c_str(), streams[stream_idx]);
+                }
             });
         });
     }
