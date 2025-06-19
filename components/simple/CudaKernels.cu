@@ -67,3 +67,24 @@ void launchTestKernel5(cudaStream_t stream) {
    // std::cout << __func__ << std::endl;
    testKernel5<<<2, 2, 0, stream>>>();
 }
+
+void * kernel1Address() {
+   return (void *)testKernel1;
+}
+
+void * kernel2Address() {
+   return (void *)testKernel2;
+}
+
+void * kernel3Address() {
+   return (void *)testKernel3;
+}
+
+void * kernel4Address() {
+   return (void *)testKernel4;
+}
+
+void * kernel5Address() {
+   return (void *)testKernel5;
+}
+

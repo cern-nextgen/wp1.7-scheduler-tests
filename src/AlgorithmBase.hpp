@@ -29,6 +29,13 @@ public:
    // might be out of scope and no longer be valid. This is exactly the case in the Scheduler.
    virtual AlgCoInterface execute(EventContext ctx) const = 0;
 
+   /**
+    * @brief Execute the algorithm as a CUDA graph.
+    * This is a virtual function that can be overridden by derived classes to provide specific graph execution logic.
+    * The default implementation simply calls the non-graph execute method.
+    */
+   virtual AlgCoInterface executeGraph(EventContext ctx) const;
+
    virtual StatusCode finalize() = 0;
 
    const std::vector<std::string>& dependencies() const {
