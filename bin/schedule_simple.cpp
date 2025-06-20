@@ -108,6 +108,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Error in FirstAlgorithm: " << (errorEnabled ? "enabled" : "disabled")
               << ", event ID: " << errorEventId << "\n";
     std::cout << "Verbose output: " << (verbose ? "enabled" : "disabled") << "\n";
+    std::cout << "CUDA kernels launch strategy: " << (strategy == Scheduler::ExecutionStrategy::CoroutinesSingleLaunch ? "single" : "graph") << "\n";
 
     // Initialize the scheduler
     Scheduler scheduler(threads, streams, strategy);
