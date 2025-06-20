@@ -1,6 +1,5 @@
 #include "FirstAlgorithm.hpp"
 
-#include <atomic>
 #include <iostream>
 #include <memory>
 

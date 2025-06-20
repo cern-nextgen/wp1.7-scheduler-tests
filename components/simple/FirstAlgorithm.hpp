@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include "AlgorithmBase.hpp"
 
 #include <cuda_runtime_api.h>
