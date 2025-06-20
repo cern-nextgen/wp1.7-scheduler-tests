@@ -1,6 +1,7 @@
 #pragma once
 
 #include "AlgorithmBase.hpp"
+#include "CachingGraphContainer.hpp"
 
 #include <cuda_runtime_api.h>
 
@@ -33,9 +34,11 @@ public:
     AlgCoInterface execute(EventContext ctx) const override;
     AlgCoInterface executeStraight(EventContext ctx) const override;
     AlgCoInterface executeGraph(EventContext ctx) const override;
+    AlgCoInterface executeCachedGraph(EventContext ctx) const override;
     StatusCode finalize() override;
 
 private:
     bool m_verbose; // Whether verbose output is enabled
     mutable SecondAlgorithmGraph m_graphImpl; // Graph helper instance
+    mutable CachingGraphContainer<SecondAlgorithmGraph> m_graphContainer; // Container for caching graph instances
 };
