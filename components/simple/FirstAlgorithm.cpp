@@ -93,10 +93,10 @@ AlgorithmBase::AlgCoInterface FirstAlgorithm::execute(EventContext ctx) const {
     ctx.scheduler->setCudaSlotState(ctx.slotNumber, 0, false);
     launchTestKernel1(ctx.stream);
     cudaLaunchHostFunc(ctx.stream, notifyScheduler, new Notification{ctx, 0});
-    range1.reset();
     if (m_verbose) {
         std::cout << MEMBER_FUNCTION_NAME(FirstAlgorithm) + " part1 end, " << ctx.info() << " tid=" << gettid() << std::endl;
     }
+    range1.reset();
     co_yield StatusCode::SUCCESS;
 
     auto range2 = std::make_unique<nvtx3::unique_range>(MEMBER_FUNCTION_NAME(FirstAlgorithm) + " part2, " + ctx.info(), nvtxcolor(ctx.eventNumber), nvtx3::payload{gettid()});
@@ -107,6 +107,36 @@ AlgorithmBase::AlgCoInterface FirstAlgorithm::execute(EventContext ctx) const {
     launchTestKernel2(ctx.stream);
     cudaLaunchHostFunc(ctx.stream, notifyScheduler, new Notification{ctx, 0});
     range2.reset();
+    co_yield StatusCode::SUCCESS;
+
+    auto range3 = std::make_unique<nvtx3::unique_range>(MEMBER_FUNCTION_NAME(FirstAlgorithm) + " conclusion, " + ctx.info(), nvtxcolor(ctx.eventNumber), nvtx3::payload{gettid()});
+    co_return StatusCode::SUCCESS;
+}
+
+AlgorithmBase::AlgCoInterface FirstAlgorithm::executeStraight(EventContext ctx) const {
+    if (m_verbose) {
+        std::cout << MEMBER_FUNCTION_NAME(FirstAlgorithm) + " part1 start, " << ctx.info() << " tid=" << gettid() << std::endl;
+    }
+    auto range1 = std::make_unique<nvtx3::unique_range>(MEMBER_FUNCTION_NAME(FirstAlgorithm) + " part1, " + ctx.info(), nvtxcolor(ctx.eventNumber), nvtx3::payload{gettid()});
+    auto output1 = std::make_unique<int>(-1);
+    SC_CHECK_YIELD(EventStoreRegistry::of(ctx).record(std::move(output1), AlgorithmBase::products()[0]));
+    auto output2 = std::make_unique<int>(-1);
+    SC_CHECK_YIELD(EventStoreRegistry::of(ctx).record(std::move(output2), AlgorithmBase::products()[1]));
+
+    // Inject error if enabled
+    if (m_errorEnabled && ctx.eventNumber == m_errorEventId) {
+        StatusCode status{StatusCode::FAILURE, "FirstAlgorithm execute failed"};
+        status.appendMsg("context event number: " + std::to_string(ctx.eventNumber));
+        status.appendMsg("context slot number: " + std::to_string(ctx.slotNumber));
+        range1.reset();
+        co_return status;
+    }
+
+    ctx.scheduler->setCudaSlotState(ctx.slotNumber, 0, false);
+    launchTestKernel1(ctx.stream);
+    launchTestKernel2(ctx.stream);
+    cudaLaunchHostFunc(ctx.stream, notifyScheduler, new Notification{ctx, 0});
+    range1.reset();
     co_yield StatusCode::SUCCESS;
 
     auto range3 = std::make_unique<nvtx3::unique_range>(MEMBER_FUNCTION_NAME(FirstAlgorithm) + " conclusion, " + ctx.info(), nvtxcolor(ctx.eventNumber), nvtx3::payload{gettid()});

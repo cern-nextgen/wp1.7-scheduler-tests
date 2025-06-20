@@ -20,7 +20,7 @@ AlgorithmBase::AlgCoInterface AlgorithmBase::executeGraph(EventContext ctx) cons
 }
 
 AlgorithmBase::AlgCoInterface AlgorithmBase::executeCachedGraph(EventContext ctx) const {
-  auto exec = execute(ctx);
+  auto exec = executeGraph(ctx);
   while (exec.resume()) {
     // Process the coroutine execution
     co_yield exec.getYield();
