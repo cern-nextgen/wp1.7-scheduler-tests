@@ -26,6 +26,7 @@ FirstAlgorithmGraph::FirstAlgorithmGraph() {
     m_kernel1Params.sharedMemBytes = 0;
     m_kernel1Params.kernelParams = nullptr;
     m_kernel1Params.extra = nullptr;
+    
     CUDA_ASSERT(cudaGraphAddKernelNode(&m_kernel1Node, m_graph, nullptr, 0, &m_kernel1Params));
     m_kernel2Params.func = kernel2Address();
     m_kernel2Params.gridDim = dim3(2);
@@ -34,9 +35,11 @@ FirstAlgorithmGraph::FirstAlgorithmGraph() {
     m_kernel2Params.kernelParams = nullptr;
     m_kernel2Params.extra = nullptr;
     CUDA_ASSERT(cudaGraphAddKernelNode(&m_kernel2Node, m_graph, &m_kernel1Node, 1, &m_kernel2Params));
+
     m_hostFunctionParams.fn = notifyScheduler;
     m_hostFunctionParams.userData = nullptr;
     CUDA_ASSERT(cudaGraphAddHostNode(&m_HostFunctionNode, m_graph, &m_kernel2Node, 1, &m_hostFunctionParams));
+    
     CUDA_ASSERT(cudaGraphInstantiate(&m_graphExec, m_graph, nullptr, nullptr, 0));
 }
 
