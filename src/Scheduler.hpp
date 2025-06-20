@@ -10,6 +10,7 @@
 #include <cstdlib>
 #include <functional>
 #include <memory>
+#include <string>
 #include <vector>
 
 #include "AlgExecState.hpp"
@@ -44,8 +45,10 @@ namespace WP17Scheduler {
 class Scheduler {
 public:
     enum class ExecutionStrategy {
-        CoroutinesSingleLaunch,
-        CoroutinesGraphLaunch
+        SingleLaunch,
+        StraightLaunches,
+        Graph,
+        CachedGraphs
     };
 
    // Struct to hold run statistics
@@ -61,7 +64,7 @@ public:
     * @param threads number of threads
     * @param slots Number of slots (i.e. concurrent events being processed).
     */
-   Scheduler(int threads = 4, int slots = 4, ExecutionStrategy executionStrategy = ExecutionStrategy::CoroutinesSingleLaunch);
+   Scheduler(int threads = 4, int slots = 4, ExecutionStrategy executionStrategy = ExecutionStrategy::SingleLaunch);
 
    // Forbidden constructors
    Scheduler(const Scheduler&) = delete;
@@ -98,6 +101,16 @@ public:
     * @brief Pushes the `update()` function in the action queue.
     */
    void actionUpdate();
+
+   static std::string to_string(ExecutionStrategy strategy) {
+      switch (strategy) {
+         case ExecutionStrategy::SingleLaunch:     return "SingleLaunch";
+         case ExecutionStrategy::Graph:            return "Graph";
+         case ExecutionStrategy::CachedGraphs:     return "CachedGraphs";
+         case ExecutionStrategy::StraightLaunches: return "StraightLaunches";
+         default:                                  return "Unknown";
+      }
+   }
 
 private:
    using action_type = std::function<StatusCode()>;

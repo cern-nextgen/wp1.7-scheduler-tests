@@ -204,12 +204,21 @@ void Scheduler::pushAction(int slot, std::size_t ialg, SlotState& slotState) {
                 // Do not resume the first time coroutine is launched because initial_suspend never
                 // suspends.
                 EventContext ctx{slotState.eventNumber, slot, this, m_streams[slot]};
-                if (m_executionStrategy == ExecutionStrategy::CoroutinesSingleLaunch) {
-                    algoSt.coroutine = alg.execute(ctx);
-                } else if (m_executionStrategy == ExecutionStrategy::CoroutinesGraphLaunch) {
-                    algoSt.coroutine = alg.executeGraph(ctx);
-                } else {
-                    throw RuntimeError("In Scheduler::pushAction(): Unknown execution strategy");
+                switch(m_executionStrategy) {
+                    case ExecutionStrategy::SingleLaunch:
+                        algoSt.coroutine = alg.execute(ctx);
+                        break;
+                    case ExecutionStrategy::StraightLaunches:
+                        algoSt.coroutine = alg.executeStraight(ctx);
+                        break;
+                    case ExecutionStrategy::Graph:
+                        algoSt.coroutine = alg.executeGraph(ctx);
+                        break;
+                    case ExecutionStrategy::CachedGraphs:
+                        algoSt.coroutine = alg.executeCachedGraph(ctx);
+                        break;
+                    default:
+                        throw RuntimeError("In Scheduler::pushAction(): Unknown execution strategy");
                 }
             } else {
                 algoSt.coroutine.resume();

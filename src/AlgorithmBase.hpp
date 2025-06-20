@@ -25,16 +25,33 @@ public:
 
    virtual StatusCode initialize() = 0;
 
-   // EventContext must be passed by value. Otherwise when coroutine is resumed reference
-   // might be out of scope and no longer be valid. This is exactly the case in the Scheduler.
+   /**
+    * @brief Execute the algorithm kernel by kernel, with callback in between.
+    * @param ctx The event context.
+    * @return A coroutine interface for the execution.
+    */
    virtual AlgCoInterface execute(EventContext ctx) const = 0;
 
    /**
-    * @brief Execute the algorithm as a CUDA graph.
-    * This is a virtual function that can be overridden by derived classes to provide specific graph execution logic.
-    * The default implementation simply calls the non-graph execute method.
+    * @brief Execute the algorithm with all kernels launched without delay and just a final synchronization.
+    * @param ctx The event context.
+    * @return A coroutine interface for the execution.
+    */
+   virtual AlgCoInterface executeStraight(EventContext ctx) const;
+
+   /**
+    * @brief Execute the algorithm as a CUDA graph with just a final synchronization.
+    * @param ctx The event context.
+    * @return A coroutine interface for the execution.
     */
    virtual AlgCoInterface executeGraph(EventContext ctx) const;
+
+   /**
+    * @brief Execute the algorithm as a CUDA graph with cached graphs to minimize contention.
+    * @param ctx The event context.
+    * @return A coroutine interface for the execution.
+    */
+   virtual AlgCoInterface executeCachedGraph(EventContext ctx) const;
 
    virtual StatusCode finalize() = 0;
 

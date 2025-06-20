@@ -22,7 +22,11 @@ void printHelp() {
               << "  --error-event <N>       Set the event ID where the error occurs (default: -1)\n"
               << "  --verbose               Enable verbose output (default: off)\n"
               << "  --help                  Show this help message\n"
-              << "  --launchStrategy <single|graph>   Select CUDA launch strategy: 'single' for kernel by kernel launch, 'graph' for CUDA graph launch\n";
+              << "  --launchStrategy <single|graph|cachedGraphs|straightLaunches>   Select CUDA launch strategy:\n"
+              << "      single          - single direct kernel launch per coroutine round\n"
+              << "      straightLaunches- multiple kernel launches per coroutine round\n"
+              << "      graph           - CUDA graph launch\n"
+              << "      cachedGraphs    - use cached CUDA graphs to minimize contention on graphs\n";
 }
 
 int main(int argc, char* argv[]) {
@@ -33,7 +37,7 @@ int main(int argc, char* argv[]) {
     bool errorEnabled = false;  // Default: no error
     int errorEventId = -1;      // Default: no specific event for error
     bool verbose = false;       // Default: no verbose output
-    Scheduler::ExecutionStrategy strategy = Scheduler::ExecutionStrategy::CoroutinesSingleLaunch;
+    Scheduler::ExecutionStrategy strategy = Scheduler::ExecutionStrategy::SingleLaunch;
 
     // Define long options
     static struct option long_options[] = {
@@ -81,9 +85,13 @@ int main(int argc, char* argv[]) {
             case 9: {
                 std::string value(optarg);
                 if (value == "single") {
-                    strategy = Scheduler::ExecutionStrategy::CoroutinesSingleLaunch;
+                    strategy = Scheduler::ExecutionStrategy::SingleLaunch;
                 } else if (value == "graph") {
-                    strategy = Scheduler::ExecutionStrategy::CoroutinesGraphLaunch;
+                    strategy = Scheduler::ExecutionStrategy::Graph;
+                } else if (value == "cachedGraphs") {
+                    strategy = Scheduler::ExecutionStrategy::CachedGraphs;
+                } else if (value == "straightLaunches") {
+                    strategy = Scheduler::ExecutionStrategy::StraightLaunches;
                 } else {
                     std::cerr << "Unknown value for --launchStrategy: " << value << std::endl;
                     return 1;
@@ -108,7 +116,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Error in FirstAlgorithm: " << (errorEnabled ? "enabled" : "disabled")
               << ", event ID: " << errorEventId << "\n";
     std::cout << "Verbose output: " << (verbose ? "enabled" : "disabled") << "\n";
-    std::cout << "CUDA kernels launch strategy: " << (strategy == Scheduler::ExecutionStrategy::CoroutinesSingleLaunch ? "single" : "graph") << "\n";
+    std::cout << "CUDA kernels launch strategy: " << Scheduler::to_string(strategy) << "\n";
 
     // Initialize the scheduler
     Scheduler scheduler(threads, streams, strategy);
