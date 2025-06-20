@@ -13,9 +13,11 @@ using WP17Scheduler::NVTXUtils::nvtxcolor;
 
 #include <cuda_runtime.h>
 
-FirstAlgorithm::FirstAlgorithm(bool errorEnabled, int errorEventId, bool verbose)
-    : m_errorEnabled(errorEnabled), m_errorEventId(errorEventId), m_verbose(verbose) {
-    // Prepare the CUDA graph
+// --- FirstAlgorithmGraph Implementation ---
+
+FirstAlgorithmGraph::FirstAlgorithmGraph() {
+    std::lock_guard<std::mutex> lock(m_graphMutex);
+
     CUDA_ASSERT(cudaGraphCreate(&m_graph, 0));
 
     m_kernel1Params.func = kernel1Address();
@@ -37,6 +39,27 @@ FirstAlgorithm::FirstAlgorithm(bool errorEnabled, int errorEventId, bool verbose
     CUDA_ASSERT(cudaGraphAddHostNode(&m_HostFunctionNode, m_graph, &m_kernel2Node, 1, &m_hostFunctionParams));
     CUDA_ASSERT(cudaGraphInstantiate(&m_graphExec, m_graph, nullptr, nullptr, 0));
 }
+
+FirstAlgorithmGraph::~FirstAlgorithmGraph() {
+    std::lock_guard<std::mutex> lock(m_graphMutex);
+    if (m_graphExec) cudaGraphExecDestroy(m_graphExec);
+    if (m_graph) cudaGraphDestroy(m_graph);
+}
+
+void FirstAlgorithmGraph::launchGraph(cudaStream_t stream, Notification* notification) {
+    std::lock_guard<std::mutex> lock(m_graphMutex);
+
+    // Only update host function userData for this launch
+    m_hostFunctionParams.userData = notification;
+    CUDA_ASSERT(cudaGraphExecHostNodeSetParams(m_graphExec, m_HostFunctionNode, &m_hostFunctionParams));
+
+    CUDA_ASSERT(cudaGraphLaunch(m_graphExec, stream));
+}
+
+// --- FirstAlgorithm Implementation ---
+
+FirstAlgorithm::FirstAlgorithm(bool errorEnabled, int errorEventId, bool verbose)
+    : m_errorEnabled(errorEnabled), m_errorEventId(errorEventId), m_verbose(verbose) {}
 
 StatusCode FirstAlgorithm::initialize() {
     nvtx3::scoped_range range{MEMBER_FUNCTION_NAME(FirstAlgorithm)};
@@ -110,7 +133,7 @@ AlgorithmBase::AlgCoInterface FirstAlgorithm::executeGraph(EventContext ctx) con
     }
 
     ctx.scheduler->setCudaSlotState(ctx.slotNumber, 0, false);
-    launchGraph(ctx.stream, new Notification{ctx, 0});
+    m_graphImpl.launchGraph(ctx.stream, new Notification{ctx, 0});
     range1.reset();
     if (m_verbose) {
         std::cout << MEMBER_FUNCTION_NAME(FirstAlgorithm) + " part1 end, " << ctx.info() << " tid=" << gettid() << std::endl;
@@ -119,15 +142,6 @@ AlgorithmBase::AlgCoInterface FirstAlgorithm::executeGraph(EventContext ctx) con
 
     auto range2 = std::make_unique<nvtx3::unique_range>(MEMBER_FUNCTION_NAME(FirstAlgorithm) + " conclusion, " + ctx.info(), nvtxcolor(ctx.eventNumber), nvtx3::payload{gettid()});
     co_return StatusCode::SUCCESS;
-}
-
-void FirstAlgorithm::launchGraph(cudaStream_t stream, Notification* notificaiton) const {
-    std::lock_guard<std::mutex> lock(m_graphMutex);
-    // Set the user data for the host function node
-    m_hostFunctionParams.userData = notificaiton;
-    CUDA_ASSERT(cudaGraphExecHostNodeSetParams(m_graphExec, m_HostFunctionNode, &m_hostFunctionParams));
-    // Launch the CUDA graph
-    CUDA_ASSERT(cudaGraphLaunch(m_graphExec, stream));
 }
 
 StatusCode FirstAlgorithm::finalize() {
