@@ -126,7 +126,7 @@ void FirstAlgorithm::launchGraph(cudaStream_t stream, Notification* notificaiton
     std::lock_guard<std::mutex> lock(m_graphMutex);
     // Set the user data for the host function node
     m_hostFunctionParams.userData = notificaiton;
-    CUDA_ASSERT(cudaGraphHostNodeSetParams(m_HostFunctionNode, &m_hostFunctionParams));
+    CUDA_ASSERT(cudaGraphExecHostNodeSetParams(m_graphExec, m_HostFunctionNode, &m_hostFunctionParams));
     // Launch the CUDA graph
     CUDA_ASSERT(cudaGraphLaunch(m_graphExec, stream));
 }

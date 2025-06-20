@@ -30,7 +30,7 @@ struct EventContext {
  * @brief Parameters passed to the CUDA callback function.
  */
 struct Notification {
-   EventContext& ctx;
+   EventContext ctx;
    std::size_t algNumber;
 };
 
