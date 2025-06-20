@@ -43,6 +43,11 @@ namespace WP17Scheduler {
  */
 class Scheduler {
 public:
+    enum class ExecutionStrategy {
+        CoroutinesSingleLaunch,
+        CoroutinesGraphLaunch
+    };
+
    // Struct to hold run statistics
    struct RunStats {
       int events = 0;
@@ -56,7 +61,7 @@ public:
     * @param threads number of threads
     * @param slots Number of slots (i.e. concurrent events being processed).
     */
-   Scheduler(int threads = 4, int slots = 4);
+   Scheduler(int threads = 4, int slots = 4, ExecutionStrategy executionStrategy = ExecutionStrategy::CoroutinesSingleLaunch);
 
    // Forbidden constructors
    Scheduler(const Scheduler&) = delete;
@@ -213,6 +218,9 @@ private:
 
    /// @brief TBB concurrent bounded queue for keeping track of actions to be executed.
    tbb::concurrent_bounded_queue<action_type> m_actionQueue;
+
+   /// @brief Execution strategy for the algorithms.
+   ExecutionStrategy m_executionStrategy;
 public:
 
    /// @brief Exception class for scheduler errors.

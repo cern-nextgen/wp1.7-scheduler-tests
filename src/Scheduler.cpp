@@ -13,12 +13,13 @@
 #include "EventStore.hpp"
 
 
-Scheduler::Scheduler(int threads, int slots)
+Scheduler::Scheduler(int threads, int slots, ExecutionStrategy executionStrategy)
     : m_threads{threads},
       m_slots{slots},
       m_nextEvent{},
       m_remainingEvents{},
-      m_arena{threads, 0} {
+      m_arena{threads, 0},
+      m_executionStrategy(executionStrategy) {
    // Set up a global limit on the number of threads.
    // TODO: explain why + 1
    tbb::global_control global_thread_limit(tbb::global_control::max_allowed_parallelism,
@@ -203,7 +204,13 @@ void Scheduler::pushAction(int slot, std::size_t ialg, SlotState& slotState) {
                 // Do not resume the first time coroutine is launched because initial_suspend never
                 // suspends.
                 EventContext ctx{slotState.eventNumber, slot, this, m_streams[slot]};
-                algoSt.coroutine = alg.execute(ctx);
+                if (m_executionStrategy == ExecutionStrategy::CoroutinesSingleLaunch) {
+                    algoSt.coroutine = alg.execute(ctx);
+                } else if (m_executionStrategy == ExecutionStrategy::CoroutinesGraphLaunch) {
+                    algoSt.coroutine = alg.executeGraph(ctx);
+                } else {
+                    throw RuntimeError("In Scheduler::pushAction(): Unknown execution strategy");
+                }
             } else {
                 algoSt.coroutine.resume();
             }

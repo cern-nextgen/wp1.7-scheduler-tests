@@ -21,7 +21,8 @@ void printHelp() {
               << "  --error-on              Enable error in FirstAlgorithm (default: off)\n"
               << "  --error-event <N>       Set the event ID where the error occurs (default: -1)\n"
               << "  --verbose               Enable verbose output (default: off)\n"
-              << "  --help                  Show this help message\n";
+              << "  --help                  Show this help message\n"
+              << "  --launchStrategy <single|graph>   Select CUDA launch strategy: 'single' for kernel by kernel launch, 'graph' for CUDA graph launch\n";
 }
 
 int main(int argc, char* argv[]) {
@@ -32,6 +33,7 @@ int main(int argc, char* argv[]) {
     bool errorEnabled = false;  // Default: no error
     int errorEventId = -1;      // Default: no specific event for error
     bool verbose = false;       // Default: no verbose output
+    Scheduler::ExecutionStrategy strategy = Scheduler::ExecutionStrategy::CoroutinesSingleLaunch;
 
     // Define long options
     static struct option long_options[] = {
@@ -43,6 +45,7 @@ int main(int argc, char* argv[]) {
         {"error-event", required_argument, nullptr, 6},
         {"verbose", no_argument, nullptr, 7},
         {"help", no_argument, nullptr, 8},
+        {"launchStrategy", required_argument, nullptr, 9},
         {nullptr, 0, nullptr, 0}
     };
 
@@ -75,6 +78,18 @@ int main(int argc, char* argv[]) {
             case 8:
                 printHelp();
                 return 0;
+            case 9: {
+                std::string value(optarg);
+                if (value == "single") {
+                    strategy = Scheduler::ExecutionStrategy::CoroutinesSingleLaunch;
+                } else if (value == "graph") {
+                    strategy = Scheduler::ExecutionStrategy::CoroutinesGraphLaunch;
+                } else {
+                    std::cerr << "Unknown value for --launchStrategy: " << value << std::endl;
+                    return 1;
+                }
+                break;
+            }
             default:
                 printHelp();
                 return 1;
@@ -95,7 +110,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Verbose output: " << (verbose ? "enabled" : "disabled") << "\n";
 
     // Initialize the scheduler
-    Scheduler scheduler(threads, streams);
+    Scheduler scheduler(threads, streams, strategy);
 
     // Create the algorithms
     FirstAlgorithm firstAlgorithm(errorEnabled, errorEventId, verbose);
