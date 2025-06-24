@@ -22,11 +22,12 @@ void printHelp() {
               << "  --error-event <N>       Set the event ID where the error occurs (default: -1)\n"
               << "  --verbose               Enable verbose output (default: off)\n"
               << "  --help                  Show this help message\n"
-              << "  --launchStrategy <single|graph|cachedGraphs|straightLaunches>   Select CUDA launch strategy:\n"
+              << "  --launchStrategy <single|graph|cachedGraphs|straightLaunches|straightDelegated>   Select CUDA launch strategy:\n"
               << "      single          - single direct kernel launch per coroutine round\n"
               << "      straightLaunches- multiple kernel launches per coroutine round\n"
               << "      graph           - CUDA graph launch\n"
-              << "      cachedGraphs    - use cached CUDA graphs to minimize contention on graphs\n";
+              << "      cachedGraphs    - use cached CUDA graphs to minimize contention on graphs\n"
+              << "      straightDelegated- straight delegated launch\n";
 }
 
 int main(int argc, char* argv[]) {
@@ -92,6 +93,8 @@ int main(int argc, char* argv[]) {
                     strategy = Scheduler::ExecutionStrategy::CachedGraphs;
                 } else if (value == "straightLaunches") {
                     strategy = Scheduler::ExecutionStrategy::StraightLaunches;
+                } else if (value == "straightDelegated") {
+                    strategy = Scheduler::ExecutionStrategy::StraightDelegated;
                 } else {
                     std::cerr << "Unknown value for --launchStrategy: " << value << std::endl;
                     return 1;

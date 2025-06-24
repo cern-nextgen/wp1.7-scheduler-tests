@@ -47,6 +47,7 @@ public:
     enum class ExecutionStrategy {
         SingleLaunch,
         StraightLaunches,
+        StraightDelegated,
         Graph,
         CachedGraphs
     };
@@ -108,6 +109,7 @@ public:
          case ExecutionStrategy::Graph:            return "Graph";
          case ExecutionStrategy::CachedGraphs:     return "CachedGraphs";
          case ExecutionStrategy::StraightLaunches: return "StraightLaunches";
+         case ExecutionStrategy::StraightDelegated: return "StraightDelegated";
          default:                                  return "Unknown";
       }
    }
