@@ -33,6 +33,7 @@ public:
     StatusCode initialize() override;
     AlgCoInterface execute(EventContext ctx) const override;
     AlgCoInterface executeStraight(EventContext ctx) const override;
+    AlgCoInterface executeStraightDelegated(EventContext ctx) const override;
     AlgCoInterface executeGraph(EventContext ctx) const override;
     AlgCoInterface executeCachedGraph(EventContext ctx) const override;
     StatusCode finalize() override;
