@@ -36,3 +36,12 @@ AlgorithmBase::AlgCoInterface AlgorithmBase::executeCachedGraph(EventContext ctx
   }
   co_return exec.getReturn();
 }
+
+AlgorithmBase::AlgCoInterface AlgorithmBase::executeCachedGraphDelegated(EventContext ctx) const {
+  auto exec = executeCachedGraph(ctx);
+  while (exec.resume()) {
+    // Process the coroutine execution
+    co_yield exec.getYield();
+  }
+  co_return exec.getReturn();
+}

@@ -49,7 +49,8 @@ public:
         StraightLaunches,
         StraightDelegated,
         Graph,
-        CachedGraphs
+        CachedGraphs,
+        CachedGraphsDelegated
     };
 
    // Struct to hold run statistics
@@ -110,6 +111,7 @@ public:
          case ExecutionStrategy::CachedGraphs:     return "CachedGraphs";
          case ExecutionStrategy::StraightLaunches: return "StraightLaunches";
          case ExecutionStrategy::StraightDelegated: return "StraightDelegated";
+         case ExecutionStrategy::CachedGraphsDelegated: return "CachedGraphsDelegated";
          default:                                  return "Unknown";
       }
    }

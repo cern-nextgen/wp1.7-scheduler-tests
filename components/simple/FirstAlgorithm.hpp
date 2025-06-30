@@ -15,6 +15,7 @@ public:
     ~FirstAlgorithmGraph();
 
     void launchGraph(cudaStream_t stream, Notification* notification);
+    void launchGraphDelegated(cudaStream_t stream, Notification* notification);
 
 private:
     cudaGraph_t m_graph{};
@@ -38,6 +39,7 @@ public:
     AlgCoInterface executeStraightDelegated(EventContext ctx) const override;
     AlgCoInterface executeGraph(EventContext ctx) const override;
     AlgCoInterface executeCachedGraph(EventContext ctx) const override;
+    AlgCoInterface executeCachedGraphDelegated(EventContext ctx) const override;
     StatusCode finalize() override;
 
 private:

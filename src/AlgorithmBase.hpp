@@ -62,6 +62,13 @@ public:
     */
    virtual AlgCoInterface executeCachedGraph(EventContext ctx) const;
 
+   /**
+    * @brief Execute the algorithm as a CUDA graph with cached graphs to minimize contention. CUDA calls are delegated to a single thread.
+    * @param ctx The event context.
+    * @return A coroutine interface for the execution.
+    */
+   virtual AlgCoInterface executeCachedGraphDelegated(EventContext ctx) const;
+
    virtual StatusCode finalize() = 0;
 
    const std::vector<std::string>& dependencies() const {
