@@ -10,6 +10,7 @@
 #include "MemberFunctionName.hpp"
 #include "Scheduler.hpp"
 #include "CUDAThread.hpp"
+#include "CUDAMutex.hpp"
 #include "../../tests/NVTXUtils.hpp"
 using WP17Scheduler::NVTXUtils::nvtxcolor;
 
@@ -175,6 +176,35 @@ AlgorithmBase::AlgCoInterface SecondAlgorithm::executeStraightDelegated(EventCon
         launchTestKernel4(ctx.stream);
         cudaLaunchHostFunc(ctx.stream, notifyScheduler, notif);
     });
+    range1.reset(); // End range
+    co_yield StatusCode::SUCCESS;
+
+    if (m_verbose) {
+        std::cout << MEMBER_FUNCTION_NAME(SecondAlgorithm) + " conclusion, " << ctx.info() << std::endl;
+    }
+    auto range2 = nvtx3::scoped_range{MEMBER_FUNCTION_NAME(SecondAlgorithm) + " conclusion" + ctx.info(), nvtxcolor(ctx.eventNumber), nvtx3::payload{ctx.eventNumber}};
+    co_return StatusCode::SUCCESS;
+}
+
+AlgorithmBase::AlgCoInterface SecondAlgorithm::executeStraightMutexed(EventContext ctx) const {
+    if (m_verbose) {
+        std::cout << MEMBER_FUNCTION_NAME(SecondAlgorithm) + " part1 start, " << ctx.info() << std::endl;
+    }
+    auto range1 = std::make_unique<nvtx3::unique_range>(MEMBER_FUNCTION_NAME(SecondAlgorithm) + " part1" + ctx.info(), nvtxcolor(ctx.eventNumber), nvtx3::payload{ctx.eventNumber});
+    const int* input = nullptr;
+    SC_CHECK_YIELD(EventStoreRegistry::of(ctx).retrieve(input, AlgorithmBase::dependencies()[0]));
+    auto output = std::make_unique<int>(-1);
+    SC_CHECK_YIELD(EventStoreRegistry::of(ctx).record(std::move(output), AlgorithmBase::products()[0]));
+
+    if (m_verbose) {
+        std::cout << MEMBER_FUNCTION_NAME(SecondAlgorithm) + " part1, " << ctx.info() << std::endl;
+    }
+    ctx.scheduler->setCudaSlotState(ctx.slotNumber, 1, false);
+    auto cudaLock = CUDAMutex::lock();
+    launchTestKernel3(ctx.stream);
+    launchTestKernel4(ctx.stream);
+    cudaLaunchHostFunc(ctx.stream, notifyScheduler, new Notification{ctx, 1});
+    cudaLock.unlock();
     range1.reset(); // End range
     co_yield StatusCode::SUCCESS;
 

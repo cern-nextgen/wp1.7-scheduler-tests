@@ -41,12 +41,20 @@ public:
 
    /**
     * @brief Execute the algorithm with all kernels launched without delay and just a final synchronization in a task
-    * All such task will be executed in a single thread to work around CUDA RT perforamnce drop when using multiple
+    * All such task will be executed in a single thread to work around CUDA RT performance drop when using multiple
     * threads.
     * @param ctx The event context.
     * @return A coroutine interface for the execution.
     */
    virtual AlgCoInterface executeStraightDelegated(EventContext ctx) const;
+
+   /**
+    * @brief Execute the algorithm with all kernels launched without delay and just a final synchronization in a task
+    * All such tasks will be mutexed to work around CUDA RT performance drop when using multiple.
+    * @param ctx The event context.
+    * @return A coroutine interface for the execution.
+    */
+   virtual AlgCoInterface executeStraightMutexed(EventContext ctx) const;
 
    /**
     * @brief Execute the algorithm as a CUDA graph with just a final synchronization.

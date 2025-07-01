@@ -214,6 +214,9 @@ void Scheduler::pushAction(int slot, std::size_t ialg, SlotState& slotState) {
                     case ExecutionStrategy::StraightDelegated:
                         algoSt.coroutine = alg.executeStraightDelegated(ctx);
                         break;
+                    case ExecutionStrategy::StraightMutexed:
+                        algoSt.coroutine = alg.executeStraightMutexed(ctx);
+                        break;
                     case ExecutionStrategy::Graph:
                         algoSt.coroutine = alg.executeGraph(ctx);
                         break;
