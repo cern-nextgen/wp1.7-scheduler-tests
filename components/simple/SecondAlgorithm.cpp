@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <mutex>
+#include <future>
 
 #include "CudaKernels.cuh"
 #include "EventContext.hpp"
@@ -57,6 +58,23 @@ void SecondAlgorithmGraph::launchGraph(cudaStream_t stream, Notification* notifi
     CUDA_ASSERT(cudaGraphExecHostNodeSetParams(m_graphExec, m_HostFunctionNode, &m_hostFunctionParams));
 
     CUDA_ASSERT(cudaGraphLaunch(m_graphExec, stream));
+}
+
+void SecondAlgorithmGraph::launchGraphDelegated(cudaStream_t stream, Notification* notification) {
+    std::lock_guard<std::mutex> lock(m_graphMutex);
+    std::promise<void> promise;
+    std::future<void> future = promise.get_future();
+
+    // Only update host function userData for this launch
+    m_hostFunctionParams.userData = notification;
+    CUDA_ASSERT(cudaGraphExecHostNodeSetParams(m_graphExec, m_HostFunctionNode, &m_hostFunctionParams));
+
+    CUDAThread::post([&, this]() {
+        CUDA_ASSERT(cudaGraphLaunch(m_graphExec, stream));
+        promise.set_value();
+    });
+
+    future.get();
 }
 
 // --- SecondAlgorithm Implementation ---
@@ -214,6 +232,35 @@ AlgorithmBase::AlgCoInterface SecondAlgorithm::executeCachedGraph(EventContext c
     // Allocate a notification for the host node
     Notification* notification = new Notification{ctx, 1};
     m_graphContainer.launchGraph(ctx.stream, notification);
+
+    { auto r = std::move(range); } // End range
+    co_yield StatusCode::SUCCESS;
+
+    if (m_verbose) {
+        std::cout << MEMBER_FUNCTION_NAME(SecondAlgorithm) + " [graph] conclusion, " << ctx.info() << std::endl;
+    }
+    auto range3 = nvtx3::scoped_range{MEMBER_FUNCTION_NAME(SecondAlgorithm) + " [graph] conclusion" + ctx.info(), nvtxcolor(ctx.eventNumber), nvtx3::payload{ctx.eventNumber}};
+    co_return StatusCode::SUCCESS;
+}
+
+AlgorithmBase::AlgCoInterface SecondAlgorithm::executeCachedGraphDelegated(EventContext ctx) const {
+    if (m_verbose) {
+        std::cout << MEMBER_FUNCTION_NAME(SecondAlgorithm) + " [graph] part1 start, " << ctx.info() << std::endl;
+    }
+    nvtx3::unique_range range{MEMBER_FUNCTION_NAME(SecondAlgorithm) + " [graph] part1" + ctx.info(), nvtxcolor(ctx.eventNumber), nvtx3::payload{ctx.eventNumber}};
+    const int* input = nullptr;
+    SC_CHECK_YIELD(EventStoreRegistry::of(ctx).retrieve(input, AlgorithmBase::dependencies()[0]));
+    auto output = std::make_unique<int>(-1);
+    SC_CHECK_YIELD(EventStoreRegistry::of(ctx).record(std::move(output), AlgorithmBase::products()[0]));
+
+    if (m_verbose) {
+        std::cout << MEMBER_FUNCTION_NAME(SecondAlgorithm) + " [graph] launching CUDA graph, " << ctx.info() << std::endl;
+    }
+    ctx.scheduler->setCudaSlotState(ctx.slotNumber, 1, false);
+
+    // Allocate a notification for the host node
+    Notification* notification = new Notification{ctx, 1};
+    m_graphContainer.launchGraphDelegated(ctx.stream, notification);
 
     { auto r = std::move(range); } // End range
     co_yield StatusCode::SUCCESS;

@@ -220,8 +220,12 @@ void Scheduler::pushAction(int slot, std::size_t ialg, SlotState& slotState) {
                     case ExecutionStrategy::CachedGraphs:
                         algoSt.coroutine = alg.executeCachedGraph(ctx);
                         break;
+                    case ExecutionStrategy::CachedGraphsDelegated:
+                        algoSt.coroutine = alg.executeCachedGraphDelegated(ctx);
+                        break;
                     default:
-                        throw RuntimeError("In Scheduler::pushAction(): Unknown execution strategy");
+                        std::cerr << "In Scheduler::pushAction(): Unknown execution strategy:" << to_string(m_executionStrategy) << std::endl;
+                        abort();
                 }
             } else {
                 algoSt.coroutine.resume();

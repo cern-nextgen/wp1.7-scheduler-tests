@@ -62,8 +62,13 @@ void FirstAlgorithmGraph::launchGraph(cudaStream_t stream, Notification* notific
 }
 
 void FirstAlgorithmGraph::launchGraphDelegated(cudaStream_t stream, Notification* notification) {
+    std::lock_guard<std::mutex> lock(m_graphMutex);
     std::promise<void> promise;
     std::future<void> future = promise.get_future();
+
+    // Only update host function userData for this launch
+    m_hostFunctionParams.userData = notification;
+    CUDA_ASSERT(cudaGraphExecHostNodeSetParams(m_graphExec, m_HostFunctionNode, &m_hostFunctionParams));
 
     CUDAThread::post([&]() {
         CUDA_ASSERT(cudaGraphLaunch(m_graphExec, stream));
