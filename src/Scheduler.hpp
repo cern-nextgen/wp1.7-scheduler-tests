@@ -49,6 +49,7 @@ public:
         StraightLaunches,
         StraightDelegated,
         StraightMutexed,
+        StraightThreadLocalStreams,
         Graph,
         CachedGraphs,
         CachedGraphsDelegated
@@ -107,14 +108,15 @@ public:
 
    static std::string to_string(ExecutionStrategy strategy) {
       switch (strategy) {
-         case ExecutionStrategy::SingleLaunch:          return "SingleLaunch";
-         case ExecutionStrategy::Graph:                 return "Graph";
-         case ExecutionStrategy::CachedGraphs:          return "CachedGraphs";
-         case ExecutionStrategy::StraightLaunches:      return "StraightLaunches";
-         case ExecutionStrategy::StraightDelegated:     return "StraightDelegated";
-         case ExecutionStrategy::StraightMutexed:       return "StraightMutexed";
-         case ExecutionStrategy::CachedGraphsDelegated: return "CachedGraphsDelegated";
-         default:                                       return "Unknown";
+         case ExecutionStrategy::SingleLaunch:               return "SingleLaunch";
+         case ExecutionStrategy::Graph:                      return "Graph";
+         case ExecutionStrategy::CachedGraphs:               return "CachedGraphs";
+         case ExecutionStrategy::StraightLaunches:           return "StraightLaunches";
+         case ExecutionStrategy::StraightDelegated:          return "StraightDelegated";
+         case ExecutionStrategy::StraightMutexed:            return "StraightMutexed";
+         case ExecutionStrategy::StraightThreadLocalStreams: return "StraightThreadLocalStreams";
+         case ExecutionStrategy::CachedGraphsDelegated:      return "CachedGraphsDelegated";
+         default:                                            return "Unknown";
       }
    }
 

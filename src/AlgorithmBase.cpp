@@ -28,6 +28,15 @@ AlgorithmBase::AlgCoInterface AlgorithmBase::executeStraightMutexed(EventContext
   co_return exec.getReturn();
 }
 
+AlgorithmBase::AlgCoInterface AlgorithmBase::executeStraightThreadLocalStreams(EventContext ctx) const {
+  auto exec = execute(ctx);
+  while (exec.resume()) {
+    // Process the coroutine execution
+    co_yield exec.getYield();
+  }
+  co_return exec.getReturn();
+}
+
 AlgorithmBase::AlgCoInterface AlgorithmBase::executeGraph(EventContext ctx) const {
   auto exec = execute(ctx);
   while (exec.resume()) {

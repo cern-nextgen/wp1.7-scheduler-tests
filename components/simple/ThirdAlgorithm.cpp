@@ -10,6 +10,7 @@
 #include "Scheduler.hpp"
 #include "CUDAThread.hpp"
 #include "CUDAMutex.hpp"
+#include "CUDAThreadLocalStream.hpp"
 #include "../../tests/NVTXUtils.hpp"
 using WP17Scheduler::NVTXUtils::nvtxcolor;
 
@@ -120,6 +121,33 @@ AlgorithmBase::AlgCoInterface ThirdAlgorithm::executeStraightMutexed(EventContex
     launchTestKernel5(ctx.stream);
     cudaLaunchHostFunc(ctx.stream, notifyScheduler, new Notification{ctx, 2});
     cudaLock.unlock();
+    { auto r = std::move(range); } // End range
+    co_yield StatusCode::SUCCESS;
+
+    if (m_verbose) {
+        std::cout << MEMBER_FUNCTION_NAME(ThirdAlgorithm) + " conclusion, " << ctx.info() << std::endl;
+    }
+    auto range2 = nvtx3::scoped_range{MEMBER_FUNCTION_NAME(ThirdAlgorithm) + " conclusion" + ctx.info(), nvtxcolor(ctx.eventNumber), nvtx3::payload{ctx.eventNumber}};
+    co_return StatusCode::SUCCESS;
+}
+
+AlgorithmBase::AlgCoInterface ThirdAlgorithm::executeStraightThreadLocalStreams(EventContext ctx) const {
+    auto stream = CUDAThreadLocalStream::get();
+    if (m_verbose) {
+        std::cout << MEMBER_FUNCTION_NAME(ThirdAlgorithm) + " part1 start, " << ctx.info() << std::endl;
+    }
+    nvtx3::unique_range range{MEMBER_FUNCTION_NAME(ThirdAlgorithm) + " part1" + ctx.info() + " stream=" + std::to_string((uint64_t)stream), nvtxcolor(ctx.eventNumber), nvtx3::payload{ctx.eventNumber}};
+    const int* input = nullptr;
+    SC_CHECK_YIELD(EventStoreRegistry::of(ctx).retrieve(input, AlgorithmBase::dependencies()[0]));
+    auto output = std::make_unique<int>(-1);
+    SC_CHECK_YIELD(EventStoreRegistry::of(ctx).record(std::move(output), AlgorithmBase::products()[0]));
+
+    if (m_verbose) {
+        std::cout << MEMBER_FUNCTION_NAME(ThirdAlgorithm) + " part1, " << ctx.info() << std::endl;
+    }
+    ctx.scheduler->setCudaSlotState(ctx.slotNumber, 2, false);
+    launchTestKernel5(stream);
+    cudaLaunchHostFunc(stream, notifyScheduler, new Notification{ctx, 2});
     { auto r = std::move(range); } // End range
     co_yield StatusCode::SUCCESS;
 
