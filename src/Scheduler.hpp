@@ -52,6 +52,7 @@ public:
         StraightThreadLocalStreams,
         StraightThreadLocalContext,
         Graph,
+        GraphFullyDelegated,
         CachedGraphs,
         CachedGraphsDelegated
     };
@@ -111,6 +112,7 @@ public:
       switch (strategy) {
          case ExecutionStrategy::SingleLaunch:               return "SingleLaunch";
          case ExecutionStrategy::Graph:                      return "Graph";
+         case ExecutionStrategy::GraphFullyDelegated:        return "GraphFullyDelegated";
          case ExecutionStrategy::CachedGraphs:               return "CachedGraphs";
          case ExecutionStrategy::StraightLaunches:           return "StraightLaunches";
          case ExecutionStrategy::StraightDelegated:          return "StraightDelegated";

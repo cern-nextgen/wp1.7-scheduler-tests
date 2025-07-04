@@ -81,6 +81,13 @@ public:
    virtual AlgCoInterface executeGraph(EventContext ctx) const;
 
    /**
+    * @brief Execute the algorithm as a CUDA graph with graph customization and launch in a single thread.
+    * @param ctx The event context.
+    * @return A coroutine interface for the execution.
+    */
+   virtual AlgCoInterface executeGraphFullyDelegated(EventContext ctx) const;
+
+   /**
     * @brief Execute the algorithm as a CUDA graph with cached graphs to minimize contention.
     * @param ctx The event context.
     * @return A coroutine interface for the execution.
