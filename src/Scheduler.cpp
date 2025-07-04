@@ -220,6 +220,9 @@ void Scheduler::pushAction(int slot, std::size_t ialg, SlotState& slotState) {
                     case ExecutionStrategy::StraightThreadLocalStreams:
                         algoSt.coroutine = alg.executeStraightThreadLocalStreams(ctx);
                         break;
+                    case ExecutionStrategy::StraightThreadLocalContext:
+                        algoSt.coroutine = alg.executeStraightThreadLocalContext(ctx);
+                        break;
                     case ExecutionStrategy::Graph:
                         algoSt.coroutine = alg.executeGraph(ctx);
                         break;

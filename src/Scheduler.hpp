@@ -50,6 +50,7 @@ public:
         StraightDelegated,
         StraightMutexed,
         StraightThreadLocalStreams,
+        StraightThreadLocalContext,
         Graph,
         CachedGraphs,
         CachedGraphsDelegated
@@ -115,6 +116,7 @@ public:
          case ExecutionStrategy::StraightDelegated:          return "StraightDelegated";
          case ExecutionStrategy::StraightMutexed:            return "StraightMutexed";
          case ExecutionStrategy::StraightThreadLocalStreams: return "StraightThreadLocalStreams";
+         case ExecutionStrategy::StraightThreadLocalContext: return "StraightThreadLocalContext";
          case ExecutionStrategy::CachedGraphsDelegated:      return "CachedGraphsDelegated";
          default:                                            return "Unknown";
       }

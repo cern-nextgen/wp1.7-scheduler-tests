@@ -39,6 +39,7 @@ public:
     AlgCoInterface executeStraightDelegated(EventContext ctx) const override;
     AlgCoInterface executeStraightMutexed(EventContext ctx) const override;
     AlgCoInterface executeStraightThreadLocalStreams(EventContext ctx) const override;
+    AlgCoInterface executeStraightThreadLocalContext(EventContext ctx) const override;
     AlgCoInterface executeGraph(EventContext ctx) const override;
     AlgCoInterface executeCachedGraph(EventContext ctx) const override;
     AlgCoInterface executeCachedGraphDelegated(EventContext ctx) const override;

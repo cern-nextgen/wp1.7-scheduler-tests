@@ -66,6 +66,14 @@ public:
    virtual AlgCoInterface executeStraightThreadLocalStreams(EventContext ctx) const;
 
    /**
+    * @brief Execute the algorithm with all kernels launched without delay and just a final synchronization in a task
+    * Each thread will make sure to call cuDevicePrimaryCtxRetain() to attempt to avoid re-initialization on each call.
+    * @param ctx The event context.
+    * @return A coroutine interface for the execution.
+    */
+   virtual AlgCoInterface executeStraightThreadLocalContext(EventContext ctx) const;
+
+   /**
     * @brief Execute the algorithm as a CUDA graph with just a final synchronization.
     * @param ctx The event context.
     * @return A coroutine interface for the execution.

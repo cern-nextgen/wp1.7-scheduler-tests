@@ -28,6 +28,7 @@ void printHelp() {
               << "      straightDelegated     - straight delegated launch\n"
               << "      straightMutexed       - straight mutexed launch\n"
               << "      straightThreadLocalStreams - straight thread-local streams launch\n"
+              << "      straightThreadLocalContext - straight with thread-local global context retained\n"
               << "      graph                 - CUDA graph launch\n"
               << "      cachedGraphs          - use cached CUDA graphs to minimize contention on graphs\n"
               << "      cachedGraphsDelegated - cached graphs with delegated launch\n";
@@ -102,6 +103,8 @@ int main(int argc, char* argv[]) {
                     strategy = Scheduler::ExecutionStrategy::StraightMutexed;
                 } else if (value == "straightThreadLocalStreams") {
                     strategy = Scheduler::ExecutionStrategy::StraightThreadLocalStreams;
+                } else if (value == "straightThreadLocalContext") {
+                    strategy = Scheduler::ExecutionStrategy::StraightThreadLocalContext;
                 } else if (value == "cachedGraphsDelegated") {
                     strategy = Scheduler::ExecutionStrategy::CachedGraphsDelegated;
                 } else {

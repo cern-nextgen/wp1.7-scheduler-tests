@@ -12,6 +12,7 @@
 #include "CUDAThread.hpp"
 #include "CUDAMutex.hpp"
 #include "CUDAThreadLocalStream.hpp"
+#include "CUDAThreadLocalContext.hpp"
 #include "../../tests/NVTXUtils.hpp"
 using WP17Scheduler::NVTXUtils::nvtxcolor;
 
@@ -256,6 +257,37 @@ AlgorithmBase::AlgCoInterface FirstAlgorithm::executeStraightThreadLocalStreams(
     launchTestKernel1(stream);
     launchTestKernel2(stream);
     cudaLaunchHostFunc(stream, notifyScheduler, new Notification{ctx, 0});
+    range1.reset();
+    co_yield StatusCode::SUCCESS;
+
+    auto range2 = std::make_unique<nvtx3::unique_range>(MEMBER_FUNCTION_NAME(FirstAlgorithm) + " conclusion, " + ctx.info(), nvtxcolor(ctx.eventNumber), nvtx3::payload{gettid()});
+    co_return StatusCode::SUCCESS;
+}
+
+AlgorithmBase::AlgCoInterface FirstAlgorithm::executeStraightThreadLocalContext(EventContext ctx) const {
+    CUDAThreadLocalContext::check(); // Ensure the primary context is retained for this thread
+    if (m_verbose) {
+        std::cout << MEMBER_FUNCTION_NAME(FirstAlgorithm) + " part1 start, " << ctx.info() << " tid=" << gettid() << std::endl;
+    }
+    auto range1 = std::make_unique<nvtx3::unique_range>(MEMBER_FUNCTION_NAME(FirstAlgorithm) + " part1, " + ctx.info(), nvtxcolor(ctx.eventNumber), nvtx3::payload{gettid()});
+    auto output1 = std::make_unique<int>(-1);
+    SC_CHECK_YIELD(EventStoreRegistry::of(ctx).record(std::move(output1), AlgorithmBase::products()[0]));
+    auto output2 = std::make_unique<int>(-1);
+    SC_CHECK_YIELD(EventStoreRegistry::of(ctx).record(std::move(output2), AlgorithmBase::products()[1]));
+
+    // Inject error if enabled
+    if (m_errorEnabled && ctx.eventNumber == m_errorEventId) {
+        StatusCode status{StatusCode::FAILURE, "FirstAlgorithm execute failed"};
+        status.appendMsg("context event number: " + std::to_string(ctx.eventNumber));
+        status.appendMsg("context slot number: " + std::to_string(ctx.slotNumber));
+        range1.reset();
+        co_return status;
+    }
+
+    ctx.scheduler->setCudaSlotState(ctx.slotNumber, 0, false);
+    launchTestKernel1(ctx.stream);
+    launchTestKernel2(ctx.stream);
+    cudaLaunchHostFunc(ctx.stream, notifyScheduler, new Notification{ctx, 0});
     range1.reset();
     co_yield StatusCode::SUCCESS;
 
