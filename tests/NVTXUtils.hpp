@@ -10,7 +10,7 @@ namespace WP17Scheduler::NVTXUtils {
    * @brief Generates cycling colors based on an index/event id.
    * @tparam T Index type
    * @param i index value
-   * @return nxtv3::rgb Color, one value per index/event.
+   * @return nvtx::rgb Color, one value per index/event.
    */
   template <typename T>
   inline nvtx3::rgb nvtxcolor(T i) {

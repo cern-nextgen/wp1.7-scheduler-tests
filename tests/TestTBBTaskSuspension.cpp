@@ -9,6 +9,7 @@
 #include <iostream>
 #include <ranges>
 #include <chrono>
+#include <thread>
 using namespace std::chrono_literals;
 #include "NVTXUtils.hpp"
 using WP17Scheduler::NVTXUtils::nvtxcolor;
