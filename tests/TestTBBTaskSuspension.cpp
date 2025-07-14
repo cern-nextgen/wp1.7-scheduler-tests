@@ -1,5 +1,5 @@
 /**
- * @file TestTBBTaskSuspention.cpp
+ * @file TestTBBTaskSuspension.cpp
  * @brief Test for TBB task suspension as an alternative to coroutines.
  */
 
