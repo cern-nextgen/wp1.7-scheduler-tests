@@ -84,18 +84,6 @@ if(BUILD_TRACCC)
   target_link_libraries(schedule_traccc PRIVATE CoScheduler components_traccc)
 endif()
 
-# Copy the simple_scheduler_scan.sh script to the bin directory and make it executable
-add_custom_command(
-  OUTPUT ${CMAKE_BINARY_DIR}/bin/simple_scheduler_scan.sh
-  COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/bin/simple_scheduler_scan.sh ${CMAKE_BINARY_DIR}/bin/simple_scheduler_scan.sh
-  DEPENDS ${CMAKE_SOURCE_DIR}/bin/simple_scheduler_scan.sh
-  COMMENT "Copying and setting executable permissions for simple_scheduler_scan.sh"
-)
-
-add_custom_target(copy_simple_scheduler_scan ALL
-  DEPENDS ${CMAKE_BINARY_DIR}/bin/simple_scheduler_scan.sh
-)
-
 # Add the tests.
 enable_testing()
 if(BUILD_TESTS)
