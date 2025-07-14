@@ -14,7 +14,9 @@
 // Forward declarations.
 struct EventContext;
 
-
+/**
+ * @brief Base class for algorithms. Algorithms express dependencies on products
+ */
 class AlgorithmBase {
 public:
    using AlgCoInterface = CoInterface<Promise<StatusCode, StatusCode>>;
@@ -23,9 +25,81 @@ public:
 
    virtual StatusCode initialize() = 0;
 
-   // EventContext must be passed by value. Otherwise when coroutine is resumed reference
-   // might be out of scope and no longer be valid. This is exactly the case in the Scheduler.
+   /**
+    * @brief Execute the algorithm kernel by kernel, with callback in between.
+    * @param ctx The event context.
+    * @return A coroutine interface for the execution.
+    */
    virtual AlgCoInterface execute(EventContext ctx) const = 0;
+
+   /**
+    * @brief Execute the algorithm with all kernels launched without delay and just a final synchronization.
+    * @param ctx The event context.
+    * @return A coroutine interface for the execution.
+    */
+   virtual AlgCoInterface executeStraight(EventContext ctx) const;
+
+   /**
+    * @brief Execute the algorithm with all kernels launched without delay and just a final synchronization in a task
+    * All such task will be executed in a single thread to work around CUDA RT performance drop when using multiple
+    * threads.
+    * @param ctx The event context.
+    * @return A coroutine interface for the execution.
+    */
+   virtual AlgCoInterface executeStraightDelegated(EventContext ctx) const;
+
+   /**
+    * @brief Execute the algorithm with all kernels launched without delay and just a final synchronization in a task
+    * All such tasks will be mutexed to work around CUDA RT performance drop when using multiple.
+    * @param ctx The event context.
+    * @return A coroutine interface for the execution.
+    */
+   virtual AlgCoInterface executeStraightMutexed(EventContext ctx) const;
+
+   /**
+    * @brief Execute the algorithm with all kernels launched without delay and just a final synchronization in a task
+    * The kernels will be launched in thread-local CUDA streams to work around CUDA RT performance drop when using the
+    * same stream from multiple threads.
+    * @param ctx The event context.
+    * @return A coroutine interface for the execution.
+    */
+   virtual AlgCoInterface executeStraightThreadLocalStreams(EventContext ctx) const;
+
+   /**
+    * @brief Execute the algorithm with all kernels launched without delay and just a final synchronization in a task
+    * Each thread will make sure to call cuDevicePrimaryCtxRetain() to attempt to avoid re-initialization on each call.
+    * @param ctx The event context.
+    * @return A coroutine interface for the execution.
+    */
+   virtual AlgCoInterface executeStraightThreadLocalContext(EventContext ctx) const;
+
+   /**
+    * @brief Execute the algorithm as a CUDA graph with just a final synchronization.
+    * @param ctx The event context.
+    * @return A coroutine interface for the execution.
+    */
+   virtual AlgCoInterface executeGraph(EventContext ctx) const;
+
+   /**
+    * @brief Execute the algorithm as a CUDA graph with graph customization and launch in a single thread.
+    * @param ctx The event context.
+    * @return A coroutine interface for the execution.
+    */
+   virtual AlgCoInterface executeGraphFullyDelegated(EventContext ctx) const;
+
+   /**
+    * @brief Execute the algorithm as a CUDA graph with cached graphs to minimize contention.
+    * @param ctx The event context.
+    * @return A coroutine interface for the execution.
+    */
+   virtual AlgCoInterface executeCachedGraph(EventContext ctx) const;
+
+   /**
+    * @brief Execute the algorithm as a CUDA graph with cached graphs to minimize contention. CUDA calls are delegated to a single thread.
+    * @param ctx The event context.
+    * @return A coroutine interface for the execution.
+    */
+   virtual AlgCoInterface executeCachedGraphDelegated(EventContext ctx) const;
 
    virtual StatusCode finalize() = 0;
 

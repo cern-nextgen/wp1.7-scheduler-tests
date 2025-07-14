@@ -5,7 +5,9 @@
 
 #include "StatusCode.hpp"
 
-
+/**
+ * @brief Wrapper fpr algorithms states. With stream operator and reset to default state (UNSCHEDULED).
+ */
 class AlgExecState {
 public:
    enum class State { UNSCHEDULED, SCHEDULED, SUSPENDED, FINISHED, ERROR };
@@ -33,12 +35,19 @@ public:
       return m_state;
    }
 
+   /**
+    * @brief conversts to `StatusCode` based on the current state.
+    * @return SUCCESS or FAILURE
+    */
    StatusCode getStatus() const {
       return m_state == ERROR ? StatusCode::FAILURE : StatusCode::SUCCESS;
    }
 
+   /**
+    * @brief Resets the state to UNSCHEDULED.
+    */
    void reset() {
-      *this = AlgExecState{};
+      new(this)AlgExecState;
    }
 
    friend bool operator==(const AlgExecState& state1, const AlgExecState& state2) {

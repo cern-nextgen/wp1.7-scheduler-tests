@@ -9,7 +9,7 @@
 
 int main() {
    // Create the scheduler.
-   Scheduler scheduler(1000, 4, 4);
+   Scheduler scheduler(4, 4);
 
    // Create the algorithms.
    TracccCellsAlgorithm cellsAlg(10);
@@ -20,6 +20,8 @@ int main() {
    scheduler.addAlgorithm(computeAlg);
 
    // Run the scheduler.
-   std::cout << (scheduler.run().what()) << std::endl;
+   Scheduler::RunStats stats;
+   auto w = scheduler.run(1000, stats).what();
+   std::cout << w << std::endl;
    return EXIT_SUCCESS;
 }

@@ -65,7 +65,7 @@ target_include_directories(
   CoScheduler PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
                      $<INSTALL_INTERFACE:include>)
 
-target_link_libraries(CoScheduler PUBLIC TBB::tbb CUDA::cudart Boost::headers)
+target_link_libraries(CoScheduler PUBLIC TBB::tbb CUDA::cudart CUDA::cuda_driver Boost::headers)
 
 if(BUILD_PATATRACK)
   # target_link_libraries(CoScheduler PUBLIC Patatrack::CUDACore
@@ -85,7 +85,7 @@ if(BUILD_TRACCC)
 endif()
 
 # Add the tests.
-
+enable_testing()
 if(BUILD_TESTS)
   add_subdirectory(tests)
 endif()

@@ -10,7 +10,10 @@
 // Forward declarations.
 class Scheduler;
 
-
+/**
+ * @brief Indices to event/slot context, plus pointed to global scheduler, they are the sole interface to the algorithms, via `execute()`.
+ * Also contains the CUDA stream.
+ */
 struct EventContext {
    int eventNumber = 0;
    int slotNumber = 0;
@@ -23,9 +26,11 @@ struct EventContext {
    }
 };
 
-
+/**
+ * @brief Parameters passed to the CUDA callback function.
+ */
 struct Notification {
-   EventContext& ctx;
+   EventContext ctx;
    std::size_t algNumber;
 };
 
