@@ -10,6 +10,21 @@
  */
 class AlgExecState {
 public:
+   /**
+    * @brief Enum representing the possible states of an algorithm execution.
+    * The states are:
+    * - UNSCHEDULED: Initial state of each algorithm. Algorithms will be moved by Scheduler:::update() via `pushAction()` (which will push
+    *   the coroutine creation/running proper to the TBB run queue).
+    * - SCHEDULED: The algorithm is scheduled for execution, but not yet running. This is set right before sumitting the algorithm to the TBB run queue.
+    * - SUSPENDED: The algorithm is currently suspended. The algorithm coroutine is waiting on the CUDA execution. update() will requeue the algorithm
+    *   to the TBB run queue (with the misnamed pushAction() function) when the CUDA execution is finished. The CUDA callback (notifyScheduler(), which belongs to
+    *   no class nor namespace) will flip the CUDA state to true, and call actionUpdate() to queue an update() execution to the "action" queue (which is schedules 
+    *   executions of scheduler::update()). The action queue is processed in Scheduler::run().
+    * - FINISHED: The algorithm has finished its execution. The algorithm coroutine is done, and the algorithm results are available.
+    * - ERROR: The algorithm has encountered an error during its execution. The algorithm coroutine is done, but the algorithm results are not available.
+    *   Once this state is reached, update() will push a lambda returning error to the action queue, which triggers an immediate return from the Scheduler::run() function.
+    */
+
    enum class State { UNSCHEDULED, SCHEDULED, SUSPENDED, FINISHED, ERROR };
 
    static constexpr State UNSCHEDULED = State::UNSCHEDULED;

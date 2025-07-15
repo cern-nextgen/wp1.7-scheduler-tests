@@ -1,5 +1,6 @@
 #pragma once
 
+#include "AlgorithmBase.hpp"
 
 #include <detray/detectors/bfield.hpp>
 #include <detray/navigation/navigator.hpp>
@@ -13,15 +14,11 @@
 #include <traccc/seeding/track_params_estimation.hpp>
 #include <vecmem/memory/host_memory_resource.hpp>
 
-#include "AlgorithmBase.hpp"
-#include "EventContext.hpp"
-
-
 class TracccAlgorithm : public AlgorithmBase {
 public:
    TracccAlgorithm(int numEvents);
    StatusCode initialize() override;
-   AlgCoInterface execute(EventContext ctx) const override;
+   AlgCoInterface execute(AlgorithmContext ctx) const override;
    StatusCode finalize() override;
 
 private:

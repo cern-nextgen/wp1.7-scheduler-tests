@@ -10,8 +10,9 @@
 #include <utility>
 #include <vector>
 
-#include "EventContext.hpp"
 #include "StatusCode.hpp"
+
+#pragma GCC optimize("O0")
 
 /**
  * @brief And `std::any`-style container for unique pointer (abstract base class).
@@ -90,15 +91,15 @@ public:
 
    // Move constructor
    EventStore(EventStore&& other) noexcept {
-      std::unique_lock<std::shared_mutex> lock(other.m_globalMutex); // Lock the source's global mutex
+      std::unique_lock<std::shared_mutex> lock(other.m_mutex); // Lock the source's global mutex
       m_store = std::move(other.m_store);
    }
 
    // Move assignment operator
    EventStore& operator=(EventStore&& other) noexcept {
       if (this != &other) {
-         std::unique_lock<std::shared_mutex> lockThis(m_globalMutex, std::defer_lock);
-         std::unique_lock<std::shared_mutex> lockOther(other.m_globalMutex, std::defer_lock);
+         std::unique_lock<std::shared_mutex> lockThis(m_mutex, std::defer_lock);
+         std::unique_lock<std::shared_mutex> lockOther(other.m_mutex, std::defer_lock);
          std::lock(lockThis, lockOther); // Lock both mutexes
          m_store = std::move(other.m_store);
       }
@@ -113,7 +114,7 @@ public:
     */
    template <typename T>
    bool contains(const std::string& name) const {
-      std::shared_lock<std::shared_mutex> globalLock(m_globalMutex); // Shared lock for map access
+      std::shared_lock<std::shared_mutex> globalLock(m_mutex); // Shared lock for map access
       auto it = m_store.find(name);
       if (it == m_store.end()) {
          return false;
@@ -131,16 +132,27 @@ public:
     */
    template <typename T>
    StatusCode retrieve(const T*& obj, const std::string& name) {
-      std::shared_lock<std::shared_mutex> globalLock(m_globalMutex); // Shared lock for map access
+      std::shared_lock<std::shared_mutex> sharedLock(m_mutex); // Shared lock for map access
       auto it = m_store.find(name);
       if (it == m_store.end()) {
+         // std::cout << "** EventStore::retrieve: Key not found: " << name << " contents: ";
+         // // Dump existing keys for debug
+         // for (const auto& [key, value] : m_store) {
+         //    std::cout<< key << "/type:" << value.value->get_type().name() << " ";
+         // }
+         // std::cout << std::endl;
          return StatusCode::FAILURE;
       }
       std::shared_lock<std::shared_mutex> lock(it->second.mutex); // Lock the element mutex
       if (typeid(T) != it->second.value->get_type()) {
+         // std::cout << "** EventStore::retrieve: Type mismatch for key: " << name 
+         //           << " requested: " << typeid(T).name() 
+         //           << " stored: " << it->second.value->get_type().name() << std::endl;
          return StatusCode::FAILURE;
       }
       obj = static_cast<const T*>(it->second.value->get_pointer());
+      // std::cout << "-- EventStore::retrieve: Retrieved key: " << name 
+      //           << " of type: " << it->second.value->get_type().name() << std::endl;
       return StatusCode::SUCCESS;
    }
 
@@ -153,15 +165,18 @@ public:
     */
    template <typename T>
    StatusCode record(std::unique_ptr<T>&& obj, const std::string& name) {
-      std::unique_lock<std::shared_mutex> globalLock(m_globalMutex); // Exclusive lock for map modification
+      std::unique_lock<std::shared_mutex> uniqueLock(m_mutex); // Exclusive lock for map modification
       auto it = m_store.find(name);
       if (it != m_store.end()) {
+         std::cout << "** EventStore::record: Key already exists: " << name << std::endl;
          return StatusCode::FAILURE;
       }
 
       ValueWithMutex newValue;
       newValue.value = std::make_unique<ObjectHolder<T>>(std::move(obj));
       m_store[name] = std::move(newValue);
+      // std::cout << "-- EventStore::record: Recorded key: " << name 
+      //           << " of type: " << typeid(T).name() << std::endl;
       return StatusCode::SUCCESS;
    }
 
@@ -169,43 +184,13 @@ public:
     * @brief Clears the store and deletes all the products.
     */
    void clear() {
-      std::unique_lock<std::shared_mutex> globalLock(m_globalMutex); // Exclusive lock for map modification
+      std::unique_lock<std::shared_mutex> uniqueLock(m_mutex); // Exclusive lock for map modification
       m_store.clear();
+      // std::cout << "   EventStore::clear: Store cleared." << std::endl;
    }
 
 private:
-   mutable std::shared_mutex m_globalMutex; // Global lock for the map
+   mutable std::shared_mutex m_mutex; // Global lock for the map
    std::map<KeyType, ValueType> m_store;    // The map storing the elements with their associated mutexes
 };
 
-/**
- * @brief Singleton registry for event stores, indexed by slot number.
- * Initialized in Scheduler::initialize(). Then referenced by `eventStoreOf()` function.
- */
-class EventStoreRegistry {
-// Private first to allow static functions to access it.
-private:
-   EventStoreRegistry() = default;
-
-   /// Singleton instance handler
-   static std::vector<EventStore>& gInstance() {
-      static std::vector<EventStore> eventStores;
-      return eventStores;
-   }
-public:
-   EventStoreRegistry(const EventStoreRegistry&) = delete;
-   EventStoreRegistry& operator=(const EventStoreRegistry&) = delete;
-
-   /**
-    * @brief Singleton accessor and instance creator/holder.
-    * @return reference to the singleton instance of EventStoreRegistry.
-    */
-   static EventStore& of(const EventContext& ctx) {
-      return gInstance().at(ctx.slotNumber);
-   }
-
-   static void initialize(std::size_t slots) {
-      gInstance().resize(slots);
-   }
-   
-};

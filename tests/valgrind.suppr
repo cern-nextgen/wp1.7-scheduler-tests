@@ -1,0 +1,137 @@
+{
+   CUDA1
+   Memcheck:Cond
+   ...
+   obj:/usr/local/cuda-12.8/targets/x86_64-linux/lib/libcudart.so.12.8.90
+}
+{
+   CUDA_2
+   Memcheck:Value8
+   ...
+   obj:/usr/local/cuda-12.8/targets/x86_64-linux/lib/libcudart.so.12.8.90
+}
+{
+   CUDA_3
+   Memcheck:Cond
+   ...
+   obj:/usr/lib/wsl/lib/libcuda.so.1
+   ...
+}
+{
+   CUDA_4
+   Memcheck:Cond
+   ...
+   fun:dlopen@@GLIBC_2.34
+}
+{
+   CUDA_5
+   Memcheck:Cond
+   ...
+   fun:_dlerror_run
+}
+{
+   CUDA_6
+   Memcheck:Param
+   openat(filename)
+   ...
+   fun:_dlerror_run
+}
+{
+   CUDA_7
+   Memcheck:Cond
+   ...
+   fun:_dl_catch_error
+}
+{
+   CUDA_8
+   Memcheck:Param
+   ioctl(generic)
+   ...
+   fun:cudaStreamCreateWithFlags
+}
+{
+   CUDA_9
+   Memcheck:Param
+   ioctl(generic)
+   ...
+   obj:/usr/local/cuda-12.8/targets/x86_64-linux/lib/libcudart.so.12.8.90
+}
+{
+   CUDA_10
+   Memcheck:Param
+   openat(filename)
+   ...
+   fun:cudaStreamCreateWithFlags
+}
+{
+   CUDa_11
+   Memcheck:Param
+   openat(filename)
+   ...
+   obj:/usr/local/cuda-12.8/targets/x86_64-linux/lib/libcudart.so.12.8.90
+}
+{
+  CUDA_12
+  Memcheck:Param
+  ioctl(generic)
+  ...
+  obj:/usr/lib/wsl/drivers/nvlt.inf_amd64_35c5f766fd22cb74/libcuda.so.1.1
+}
+{
+   CUDA_13
+   Memcheck:Param
+   mmap(start)
+   ...
+   obj:/usr/local/cuda-12.8/targets/x86_64-linux/lib/libcudart.so.12.8.90
+}
+{
+   CUDA_14
+   Memcheck:Param
+   mmap(length)
+   ...
+   obj:/usr/local/cuda-12.8/targets/x86_64-linux/lib/libcudart.so.12.8.90
+}
+{
+  CUDA_15
+  Memcheck:Cond
+  ...
+  obj:/usr/lib/wsl/drivers/nvlt.inf_amd64_35c5f766fd22cb74/libcuda.so.1.1
+}
+{
+   CUDA_16
+   Memcheck:Value8
+   ...
+   obj:/usr/lib/wsl/drivers/nvlt.inf_amd64_35c5f766fd22cb74/libcuda.so.1.1
+}
+{
+   CUDA_17
+   Memcheck:Param
+   mmap(length)
+   ...
+   obj:/usr/lib/wsl/drivers/nvlt.inf_amd64_35c5f766fd22cb74/libcuda.so.1.1
+}
+{
+   CUDA_18
+   Memcheck:Param
+   mmap(start)
+   ...
+   obj:/usr/lib/wsl/drivers/nvlt.inf_amd64_35c5f766fd22cb74/libcuda.so.1.1
+}
+{
+   CUDA_19
+   Memcheck:Addr4
+   ...
+   obj:/usr/local/cuda-12.8/targets/x86_64-linux/lib/libcudart.so.12.8.90
+}
+{
+   CUDA_20
+   Memcheck:Addr8
+   ...
+   obj:/usr/lib/wsl/drivers/nvlt.inf_amd64_35c5f766fd22cb74/libcuda.so.1.1
+}
+{
+   CUDA_21
+   Memcheck:Addr4
+   ...
+   obj:/usr/lib/wsl/drivers/nvlt.inf_amd64_35c5f766fd22cb74/libcuda.so.1.1
+}
