@@ -3,8 +3,6 @@
 #include "MockAlgorithm.hpp"
 #include <ranges>
 
-#pragma GCC optimize ("O0")
-
 TEST(SchedulerTest, RegisterFiveAlgorithms) {
     Scheduler sched;
     MockAlgorithm algA{{}, {"prodA"}};
@@ -215,7 +213,7 @@ TEST(SchedulerTest, scheduleEventLinearWithError) {
     MockAlgorithm algC{{"prodB"}, {"prodC"}};
     MockAlgorithm algD{{"prodC"}, {"prodD"}};
     MockAlgorithm algE{{"prodD"}, {"prodE"}};
-    std::size_t errorEvent = 42;
+    int errorEvent = 42;
     std::size_t errorAlgorithm = 2; // algC
     algC.setInjectErrorAtEvent(errorEvent); // Inject an error at event 42
     sched.addAlgorithm(algA);

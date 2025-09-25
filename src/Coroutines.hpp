@@ -5,9 +5,6 @@
 #include <exception>
 #include <utility>
 
-#pragma GCC optimize("O0")
-
-
 // Coroutine interface.
 template <typename PT>
 class [[nodiscard]] CoInterface {

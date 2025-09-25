@@ -8,9 +8,6 @@
 #include "SecondAlgorithm.hpp"
 #include "ThirdAlgorithm.hpp"
 
-// Add pragma to suppress optimization for debugging purposes.
-#pragma GCC optimize ("O0")
-
 void printHelp() {
     std::cout << "Usage: schedule_simple [options]\n"
               << "Options:\n"

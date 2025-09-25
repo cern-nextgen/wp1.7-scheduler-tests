@@ -4,8 +4,6 @@
 #include <string>
 #include <cassert>
 
-#pragma GCC optimize("O0")
-
 /**
  * @brief A mock algorithm for testing purposes. Records algorithm execution. Can inject errors.
  */
@@ -86,10 +84,10 @@ public:
     
     // Inject errors,
     private:
-    std::size_t m_injectErrorAtEvent = std::numeric_limits<std::size_t>::max();
+    int m_injectErrorAtEvent = std::numeric_limits<int>::max();
 
     public:
-    void setInjectErrorAtEvent(std::size_t event) { m_injectErrorAtEvent = event; }
+    void setInjectErrorAtEvent(int event) { m_injectErrorAtEvent = event; }
 
     // TODO: add event store interface.
 };

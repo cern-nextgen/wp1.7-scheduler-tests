@@ -3,8 +3,6 @@
 #include <exception>
 #include <ranges>
 
-#pragma GCC optimize("O0")
-
 Scheduler::Scheduler(int threads, int slots, ExecutionStrategy executionStrategy)
     : m_threadsNumber{threads},
       m_eventSlotsNumber{slots},
