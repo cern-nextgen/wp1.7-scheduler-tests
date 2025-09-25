@@ -47,3 +47,43 @@
    fun:pop
    fun:_ZN9Scheduler3runEv
 }
+{
+   CUDA_1
+   Helgrind:Race
+   ...
+   obj:/usr/lib/wsl/drivers/nvlt.inf_amd64_35c5f766fd22cb74/libcuda.so.1.1
+   ...
+}
+{
+   CUDA_2
+   Helgrind:Race
+   obj:/usr/lib/wsl/drivers/nv_dispig.inf_amd64_74b0ab655986054e/libcuda.so.1.1
+   ...
+   obj:/usr/lib/wsl/drivers/nv_dispig.inf_amd64_74b0ab655986054e/libcuda.so.1.1
+   obj:/usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so
+   ...
+}
+{
+   CUDA_3
+   Helgrind:Race
+   obj:/usr/lib/wsl/drivers/nv_dispig.inf_amd64_74b0ab655986054e/libcuda.so.1.1
+   ...
+   obj:/usr/lib/wsl/drivers/nv_dispig.inf_amd64_74b0ab655986054e/libcuda.so.1.1
+   fun:cuDevicePrimaryCtxRetain
+   ...
+}
+
+{
+   CUDA_4
+   Helgrind:Race
+   fun:memcpy@GLIBC_2.2.5
+   obj:/usr/lib/wsl/drivers/nv_dispig.inf_amd64_74b0ab655986054e/libcuda.so.1.1
+   ...
+}
+{
+  CUDA_5
+      Helgrind:Race
+   obj:/usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so
+   obj:/usr/lib/wsl/drivers/nv_dispig.inf_amd64_74b0ab655986054e/libcuda.so.1.1
+   ...
+}

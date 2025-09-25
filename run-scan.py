@@ -183,7 +183,7 @@ def _run(processUntil, nstr, cores_main, opts, logfilename, monitor, cudaDevices
     with open(logfilename, "w") as logfile:
         taskset = []
         nvprof = []
-        command = [opts.program] + processUntil + ["--numberOfStreams", str(nstr), "--numberOfThreads", str(nth)] + opts.args
+        command = ["timeout", "60", opts.program] + processUntil + ["--numberOfStreams", str(nstr), "--numberOfThreads", str(nth)] + opts.args
         if opts.taskset:
             taskset = ["taskset", "-c", ",".join(cores_main)]
 

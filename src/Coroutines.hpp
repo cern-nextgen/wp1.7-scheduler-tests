@@ -5,7 +5,6 @@
 #include <exception>
 #include <utility>
 
-
 // Coroutine interface.
 template <typename PT>
 class [[nodiscard]] CoInterface {

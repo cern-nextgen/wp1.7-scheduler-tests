@@ -5,7 +5,6 @@
 #include <traccc/io/read_detector.hpp>
 #include <traccc/io/read_detector_description.hpp>
 
-#include "Scheduler.hpp"
 #include "traccc/clusterization/clustering_config.hpp"
 
 
@@ -71,10 +70,9 @@ StatusCode TracccCudaAlgorithm::initialize() {
 }
 
 
-AlgorithmBase::AlgCoInterface TracccCudaAlgorithm::execute(EventContext ctx) const {
+AlgorithmBase::AlgCoInterface TracccCudaAlgorithm::execute(AlgorithmContext ctx) const {
    const auto& cells = m_cells[ctx.eventNumber % m_numEvents];
 
-   ctx.scheduler->setCudaSlotState(ctx.slotNumber, 0, false);
    traccc::edm::silicon_cell_collection::buffer cells_buffer{
        static_cast<unsigned int>(cells.size()), m_mr.main};
    m_copy(vecmem::get_data(cells), cells_buffer)->ignore();
@@ -82,24 +80,21 @@ AlgorithmBase::AlgCoInterface TracccCudaAlgorithm::execute(EventContext ctx) con
    m_ms_cuda(measurements_cuda_buffer);
 
    auto spacepoints_cuda_buffer = m_sf_cuda(m_device_detector_view, measurements_cuda_buffer);
-   cudaLaunchHostFunc(ctx.stream, notifyScheduler, new EventContext{ctx});
+   cudaLaunchHostFunc(ctx.stream, AlgorithmContext::newScheduleResumeCallback, new AlgorithmContext{ctx});
    co_yield StatusCode::SUCCESS;
 
-   ctx.scheduler->setCudaSlotState(ctx.slotNumber, 0, false);
    auto seeds_cuda_buffer = m_sa_cuda(spacepoints_cuda_buffer);
-   cudaLaunchHostFunc(ctx.stream, notifyScheduler, new EventContext{ctx});
+   cudaLaunchHostFunc(ctx.stream, AlgorithmContext::newScheduleResumeCallback, new AlgorithmContext{ctx});
    co_yield StatusCode::SUCCESS;
 
    // Constant B field for the track finding and fitting.
    const traccc::vector3 field_vec = {0.f, 0.f, traccc::seedfinder_config{}.bFieldInZ};
    const detray::bfield::const_field_t field = detray::bfield::create_const_field(field_vec);
 
-   ctx.scheduler->setCudaSlotState(ctx.slotNumber, 0, false);
    auto params_cuda_buffer = m_tp_cuda(spacepoints_cuda_buffer, seeds_cuda_buffer, field_vec);
-   cudaLaunchHostFunc(ctx.stream, notifyScheduler, new EventContext{ctx});
+   cudaLaunchHostFunc(ctx.stream, AlgorithmContext::newScheduleResumeCallback, new AlgorithmContext{ctx});
    co_yield StatusCode::SUCCESS;
 
-   ctx.scheduler->setCudaSlotState(ctx.slotNumber, 0, false);
    auto track_candidates_buffer = m_finding_alg_cuda(
        m_device_detector_view, field, measurements_cuda_buffer, params_cuda_buffer);
 
@@ -107,7 +102,7 @@ AlgorithmBase::AlgCoInterface TracccCudaAlgorithm::execute(EventContext ctx) con
        = m_fitting_alg_cuda(m_device_detector_view, field, track_candidates_buffer);
 
    m_stream.synchronize();
-   cudaLaunchHostFunc(ctx.stream, notifyScheduler, new EventContext{ctx});
+   cudaLaunchHostFunc(ctx.stream, AlgorithmContext::newScheduleResumeCallback, new AlgorithmContext{ctx});
    co_return StatusCode::SUCCESS;
 }
 

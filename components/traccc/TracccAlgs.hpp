@@ -14,15 +14,13 @@
 #include <vecmem/memory/host_memory_resource.hpp>
 
 #include "AlgorithmBase.hpp"
-#include "EventContext.hpp"
-
 
 // Unique pointer members are moved insides execute. Not re-entrant.
 class TracccCellsAlgorithm : public AlgorithmBase {
 public:
    TracccCellsAlgorithm(int numEvents);
    StatusCode initialize() override;
-   AlgCoInterface execute(EventContext ctx) const override;
+   AlgCoInterface execute(AlgorithmContext ctx) const override;
    StatusCode finalize() override;
 
 private:
@@ -38,7 +36,7 @@ class TracccComputeAlgorithm : public AlgorithmBase {
 public:
    TracccComputeAlgorithm(int numEvents);
    StatusCode initialize() override;
-   AlgCoInterface execute(EventContext ctx) const override;
+   AlgCoInterface execute(AlgorithmContext ctx) const override;
    StatusCode finalize() override;
 
 private:

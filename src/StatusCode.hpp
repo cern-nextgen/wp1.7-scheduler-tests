@@ -24,6 +24,14 @@
       }                                                           \
    } while(false)
 
+#define SC_CHECK_CO_RETURN(EXP)                                   \
+   do {                                                           \
+      const StatusCode sc = EXP;                                  \
+      if(!sc) {                                                   \
+         std::cout << "Failed to execute: " << #EXP << std::endl; \
+         co_return StatusCode::FAILURE;                            \
+      }                                                           \
+   } while(false)
 class [[nodiscard]] StatusCode {
 public:
    enum class ErrorCode : int { SUCCESS = 0, FAILURE = 1 };

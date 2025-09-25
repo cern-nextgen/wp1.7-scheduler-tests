@@ -1,83 +1,91 @@
 #include "AlgorithmBase.hpp"
-#include "EventContext.hpp"
 
-AlgorithmBase::AlgCoInterface AlgorithmBase::executeStraight(EventContext ctx) const {
+AlgorithmBase::AlgCoInterface AlgorithmBase::executeStraight(AlgorithmContext ctx) const {
   auto exec = execute(ctx);
-  while (exec.resume()) {
+  while (exec.isResumable()) {
     // Process the coroutine execution
     co_yield exec.getYield();
+    exec.resume();
   }
   co_return exec.getReturn();
 }
 
-AlgorithmBase::AlgCoInterface AlgorithmBase::executeStraightDelegated(EventContext ctx) const {
+AlgorithmBase::AlgCoInterface AlgorithmBase::executeStraightDelegated(AlgorithmContext ctx) const {
   auto exec = execute(ctx);
-  while (exec.resume()) {
+  while (exec.isResumable()) {
     // Process the coroutine execution
     co_yield exec.getYield();
+    exec.resume();
   }
   co_return exec.getReturn();
 }
 
-AlgorithmBase::AlgCoInterface AlgorithmBase::executeStraightMutexed(EventContext ctx) const {
+AlgorithmBase::AlgCoInterface AlgorithmBase::executeStraightMutexed(AlgorithmContext ctx) const {
   auto exec = execute(ctx);
-  while (exec.resume()) {
+  while (exec.isResumable()) {
     // Process the coroutine execution
     co_yield exec.getYield();
+    exec.resume();
   }
   co_return exec.getReturn();
 }
 
-AlgorithmBase::AlgCoInterface AlgorithmBase::executeStraightThreadLocalStreams(EventContext ctx) const {
+AlgorithmBase::AlgCoInterface AlgorithmBase::executeStraightThreadLocalStreams(AlgorithmContext ctx) const {
   auto exec = execute(ctx);
-  while (exec.resume()) {
+  while (exec.isResumable()) {
     // Process the coroutine execution
     co_yield exec.getYield();
+    exec.resume();
   }
   co_return exec.getReturn();
 }
 
-AlgorithmBase::AlgCoInterface AlgorithmBase::executeStraightThreadLocalContext(EventContext ctx) const {
+AlgorithmBase::AlgCoInterface AlgorithmBase::executeStraightThreadLocalContext(AlgorithmContext ctx) const {
   auto exec = execute(ctx);
-  while (exec.resume()) {
+  while (exec.isResumable()) {
     // Process the coroutine execution
     co_yield exec.getYield();
+    exec.resume();
   }
   co_return exec.getReturn();
 }
 
-AlgorithmBase::AlgCoInterface AlgorithmBase::executeGraph(EventContext ctx) const {
+AlgorithmBase::AlgCoInterface AlgorithmBase::executeGraph(AlgorithmContext ctx) const {
   auto exec = execute(ctx);
-  while (exec.resume()) {
+  while (exec.isResumable()) {
     // Process the coroutine execution
     co_yield exec.getYield();
-  }
+    exec.resume();
+  }  
   co_return exec.getReturn();
 }
 
-AlgorithmBase::AlgCoInterface AlgorithmBase::executeGraphFullyDelegated(EventContext ctx) const {
+AlgorithmBase::AlgCoInterface AlgorithmBase::executeGraphFullyDelegated(AlgorithmContext ctx) const {
   auto exec = executeGraph(ctx);
-  while (exec.resume()) {
+  while (exec.isResumable()) {
     // Process the coroutine execution
     co_yield exec.getYield();
+    exec.resume();
   }
   co_return exec.getReturn();
 }
 
-AlgorithmBase::AlgCoInterface AlgorithmBase::executeCachedGraph(EventContext ctx) const {
+AlgorithmBase::AlgCoInterface AlgorithmBase::executeCachedGraph(AlgorithmContext ctx) const {
   auto exec = executeGraph(ctx);
-  while (exec.resume()) {
+  while (exec.isResumable()) {
     // Process the coroutine execution
     co_yield exec.getYield();
+    exec.resume();
   }
   co_return exec.getReturn();
 }
 
-AlgorithmBase::AlgCoInterface AlgorithmBase::executeCachedGraphDelegated(EventContext ctx) const {
+AlgorithmBase::AlgCoInterface AlgorithmBase::executeCachedGraphDelegated(AlgorithmContext ctx) const {
   auto exec = executeCachedGraph(ctx);
-  while (exec.resume()) {
+  while (exec.isResumable()) {
     // Process the coroutine execution
     co_yield exec.getYield();
+    exec.resume();
   }
   co_return exec.getReturn();
 }
